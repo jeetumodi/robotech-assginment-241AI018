@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import AOS from "aos";
 import "aos/dist/aos.css";
+import Navbar from "../components/Navbar";
+import Footer from "../components/Footer"
 
 /* ================= CONSTANTS ================= */
 
@@ -157,6 +159,7 @@ export default function SponsorUsPage() {
 
   return (
     <>
+    <Navbar></Navbar>
       {/* ===== BACKGROUND VIDEO ===== */}
       <video
         autoPlay
@@ -342,6 +345,7 @@ export default function SponsorUsPage() {
           )}
         </section>
       </main>
+      <Footer></Footer>
 
       {/* ===== TOAST ===== */}
       {toast.show && (
