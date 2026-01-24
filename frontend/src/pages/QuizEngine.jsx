@@ -38,35 +38,25 @@ export default function QuizEngine() {
     useEffect(() => {
         const init = async () => {
             try {
-                // Use join_by_code to get existing attempt (works for guests too)
+                const code = sessionStorage.getItem(`quiz_code_${id}`);
+
+                // Fetch current status and quiz data
                 const res = await api.post("/quizzes/join_by_code/", {
-                    code: 'QUERY', // Special code or just any code since we have quiz ID? 
-                    // Actually, let's use the ID directly and update view to allow lookup by ID if authenticated OR quiz+email
-                });
-                // Wait, it's better to use the email directly in the join_by_code if we have it.
-                // But since we are already in /session, we must have an attempt.
-
-                // Fetch quiz data
-                const qRes = await api.get(`/quizzes/${id}/`);
-                setQuiz(qRes.data);
-
-                // Fetch attempt details
-                // To support guests, we use the email
-                const sessionRes = await api.post("/quizzes/join_by_code/", {
+                    code,
                     email: guestEmail
-                    // Note: join_by_code needs 'code' but I'll make it optional if it's a 'GET_STATUS' request
                 });
 
-                const curAttempt = sessionRes.data.attempt;
+                const { quiz, attempt } = res.data;
 
-                if (!curAttempt || curAttempt.status !== 'ONGOING') {
+                if (!attempt || attempt.status !== 'ONGOING') {
                     navigate(`/quizzes/${id}/onboarding`);
                     return;
                 }
 
-                setAttempt(curAttempt);
-                setTimeLeft(curAttempt.time_left);
-                setResponses(curAttempt.responses || {});
+                setQuiz(quiz);
+                setAttempt(attempt);
+                setTimeLeft(attempt.time_left);
+                setResponses(attempt.responses || {});
                 setLoading(false);
             } catch (err) { navigate("/quizzes"); }
         };

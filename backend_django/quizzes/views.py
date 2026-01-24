@@ -34,11 +34,9 @@ class QuizViewSet(viewsets.ModelViewSet):
         elif email:
             attempt = QuizAttempt.objects.filter(quiz=quiz, candidate_email=email).first()
 
-        if not attempt and request.method == 'POST':
+        # If it's a POST and we have identity, try to create attempt
+        if not attempt and request.method == 'POST' and (user or email):
             name = request.data.get('name', 'Anonymous Candidate')
-            if not user and not email:
-                return Response({"error": "Identification required for guests"}, status=400)
-            
             attempt = QuizAttempt.objects.create(
                 quiz=quiz,
                 user=user,
@@ -46,8 +44,13 @@ class QuizViewSet(viewsets.ModelViewSet):
                 candidate_email=email if not user else user.email
             )
         
+        # If no attempt exists (Step 1: Code Verification), return success status
         if not attempt:
-             return Response({"status": "code_valid", "quiz_title": quiz.title})
+             return Response({
+                 "status": "code_valid", 
+                 "quiz_title": quiz.title,
+                 "requires_identity": not user
+             })
 
         return Response({
             "quiz": QuizSerializer(quiz).data,

@@ -42,9 +42,10 @@ export default function QuizPortal() {
             const res = await api.post("/quizzes/join_by_code/", { code, name, email });
             const { quiz, attempt } = res.data;
 
-            // Store email in sessionStorage to persist guest identity for this session
+            // Store identity and code in sessionStorage to persist guest session
             sessionStorage.setItem(`quiz_email_${quiz.id}`, email);
             sessionStorage.setItem(`quiz_name_${quiz.id}`, name);
+            sessionStorage.setItem(`quiz_code_${quiz.id}`, code);
 
             if (attempt.status === 'STARTING') {
                 navigate(`/quizzes/${quiz.id}/onboarding`);
