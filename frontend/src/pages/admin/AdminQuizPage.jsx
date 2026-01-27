@@ -35,7 +35,7 @@ export default function AdminQuizPage() {
                 default_marks: 4,
                 default_negative_marks: 1
             });
-            navigate(`/admin/quizzes/${res.data.id}`);
+            navigate(`/portal/quizzes/${res.data.id}`);
         } catch (err) {
             alert("Failed to initiate sequence.");
         }
@@ -104,13 +104,13 @@ export default function AdminQuizPage() {
 
                         <div className="flex gap-3 mt-auto">
                             <button
-                                onClick={() => navigate(`/admin/quizzes/${quiz.id}`)}
+                                onClick={() => navigate(`/portal/quizzes/${quiz.id}`)}
                                 className="flex-1 py-4 bg-white/5 hover:bg-white/10 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all border border-white/5"
                             >
                                 Build
                             </button>
                             <button
-                                onClick={() => navigate(`/admin/quizzes/${quiz.id}/responses`)}
+                                onClick={() => navigate(`/portal/quizzes/${quiz.id}/responses`)}
                                 className="flex-1 py-4 bg-white/5 hover:bg-white/10 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all border border-white/5"
                             >
                                 Records

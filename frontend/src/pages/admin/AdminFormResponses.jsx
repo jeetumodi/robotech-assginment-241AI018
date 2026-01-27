@@ -26,7 +26,7 @@ export default function AdminFormResponses() {
             setForm(fRes.data);
             setResponses(rRes.data);
         } catch (err) {
-            navigate("/admin/forms");
+            navigate("/portal/forms");
         } finally {
             setLoading(false);
         }
@@ -85,7 +85,7 @@ export default function AdminFormResponses() {
         <div className="p-6 md:p-10 max-w-7xl mx-auto text-white">
             <div className="mb-10 flex flex-col sm:flex-row justify-between items-start sm:items-end gap-6">
                 <div>
-                    <button onClick={() => navigate("/admin/forms")} className="text-sm text-orange-400 hover:outline mb-4 flex items-center gap-2">← Form Registry</button>
+                    <button onClick={() => navigate("/portal/forms")} className="text-sm text-orange-400 hover:outline mb-4 flex items-center gap-2">← Form Registry</button>
                     <h1 className="text-3xl font-bold font-[Orbitron] text-gray-100">{form.title}</h1>
                     <p className="text-gray-400 mt-2">Acquisition analytics and responder data signals.</p>
                 </div>

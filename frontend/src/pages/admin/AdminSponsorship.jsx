@@ -80,7 +80,7 @@ export default function AdminSponsorshipPage() {
 
       {/* ===== BACK NAV ===== */}
       <button
-        onClick={() => navigate("/admin/dashboard")}
+        onClick={() => navigate("/portal/dashboard")}
         className="text-sm text-cyan-400 hover:underline mb-4 w-fit"
       >
         ← Back to Dashboard

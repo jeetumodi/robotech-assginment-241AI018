@@ -56,7 +56,7 @@ export default function AdminEventForm() {
   }, [id]);
 
   async function loadEvent() {
-    const res = await api.get(`/admin/events/${id}`);
+    const res = await api.get(`/events/${id}/`);
 
     setForm({
       title: res.data.title ?? "",
@@ -160,13 +160,13 @@ export default function AdminEventForm() {
       }
 
       if (isEdit) {
-        await api.put(`/admin/events/${id}`, fd);
+        await api.put(`/events/${id}/`, fd);
       } else {
-        await api.post("/admin/events", fd);
+        await api.post("/events/", fd);
       }
 
       showToast("Event saved successfully.", "success");
-      navigate("/admin/events");
+      navigate("/portal/events");
     } catch (err) {
       console.error(err);
       showToast("Failed to save event.", "error");
@@ -392,8 +392,8 @@ export default function AdminEventForm() {
             {status === "saving"
               ? "Saving event…"
               : isEdit
-              ? "Save Changes"
-              : "Create Event"}
+                ? "Save Changes"
+                : "Create Event"}
           </button>
         </div>
       </form>
@@ -403,10 +403,9 @@ export default function AdminEventForm() {
         <div
           className={`
             fixed bottom-6 right-6 z-50 px-4 py-3 rounded-lg shadow-lg text-sm
-            ${
-              toast.type === "success"
-                ? "bg-green-600"
-                : toast.type === "error"
+            ${toast.type === "success"
+              ? "bg-green-600"
+              : toast.type === "error"
                 ? "bg-red-600"
                 : "bg-cyan-600"
             }

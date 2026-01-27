@@ -64,9 +64,8 @@ export default function ResetPassword() {
 
   const RuleItem = ({ valid, label }) => (
     <li
-      className={`flex items-center text-sm ${
-        valid ? "text-green-400" : "text-gray-400"
-      }`}
+      className={`flex items-center text-sm ${valid ? "text-green-400" : "text-gray-400"
+        }`}
     >
       <span className="mr-2">{valid ? "✓" : "•"}</span>
       {label}
@@ -77,7 +76,7 @@ export default function ResetPassword() {
     <div className="min-h-screen bg-gradient-to-b from-black via-[#020617] to-black flex flex-col items-center px-4">
       {/* ===== TOP LOGO ===== */}
       <Link
-        to="/admin/dashboard"
+        to="/portal/dashboard"
         aria-label="Go to RoboTech homepage"
         className="mt-10 mb-8 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded-full"
       >
@@ -155,11 +154,10 @@ export default function ResetPassword() {
         <button
           onClick={submit}
           disabled={!isFormValid || loading}
-          className={`w-full py-3 rounded text-white text-base font-medium transition ${
-            loading || !isFormValid
+          className={`w-full py-3 rounded text-white text-base font-medium transition ${loading || !isFormValid
               ? "bg-gray-600 cursor-not-allowed"
               : "bg-blue-600 active:bg-blue-700"
-          }`}
+            }`}
         >
           {loading ? "Updating..." : "Update Password"}
         </button>

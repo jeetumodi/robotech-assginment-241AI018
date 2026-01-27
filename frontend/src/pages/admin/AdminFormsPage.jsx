@@ -32,7 +32,7 @@ export default function AdminFormsPage() {
             setIsAdding(false);
             setNewForm({ title: "", description: "" });
             // Navigate to form builder for the new form
-            navigate(`/admin/forms/${res.data.id}`);
+            navigate(`/portal/forms/${res.data.id}`);
         } catch (err) {
             alert("Failed to create form");
         }
@@ -42,7 +42,7 @@ export default function AdminFormsPage() {
         <div className="p-6 md:p-10 max-w-7xl mx-auto text-white">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-10">
                 <div>
-                    <button onClick={() => navigate("/admin/dashboard")} className="text-sm text-cyan-400 hover:underline mb-2">← Dashboard</button>
+                    <button onClick={() => navigate("/portal/dashboard")} className="text-sm text-cyan-400 hover:underline mb-2">← Dashboard</button>
                     <h1 className="text-4xl font-bold font-[Orbitron] text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-red-500">
                         Dynamic Forms
                     </h1>
@@ -90,13 +90,13 @@ export default function AdminFormsPage() {
 
                             <div className="grid grid-cols-2 gap-3 mt-auto">
                                 <button
-                                    onClick={() => navigate(`/admin/forms/${form.id}`)}
+                                    onClick={() => navigate(`/portal/forms/${form.id}`)}
                                     className="py-2 bg-white/5 hover:bg-white/10 rounded-lg text-xs font-bold transition uppercase"
                                 >
                                     Build & Edit
                                 </button>
                                 <button
-                                    onClick={() => navigate(`/admin/forms/${form.id}/responses`)}
+                                    onClick={() => navigate(`/portal/forms/${form.id}/responses`)}
                                     className="py-2 bg-orange-600/10 hover:bg-orange-600/20 text-orange-400 rounded-lg text-xs font-bold transition uppercase"
                                 >
                                     Results ({form.response_count})

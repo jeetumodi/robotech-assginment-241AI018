@@ -48,7 +48,7 @@ export default function AdminFormBuilder() {
                 setActiveSectionId(res.data.sections[0].id);
             }
         } catch (err) {
-            navigate("/admin/forms");
+            navigate("/portal/forms");
         } finally {
             setLoading(false);
         }
@@ -139,7 +139,7 @@ export default function AdminFormBuilder() {
             {/* HEADER & CONTROLS */}
             <div className="mb-10 flex flex-col md:flex-row justify-between items-start gap-8">
                 <div className="flex-1">
-                    <button onClick={() => navigate("/admin/forms")} className="text-sm text-orange-400 hover:outline mb-4 flex items-center gap-2">← Navigator</button>
+                    <button onClick={() => navigate("/portal/forms")} className="text-sm text-orange-400 hover:outline mb-4 flex items-center gap-2">← Navigator</button>
                     <h1 className="text-4xl font-bold font-[Orbitron] text-gray-100">{form.title}</h1>
                     <p className="text-gray-500 mt-2">{form.description}</p>
                 </div>

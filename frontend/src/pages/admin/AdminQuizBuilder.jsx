@@ -23,7 +23,7 @@ export default function AdminQuizBuilder() {
             setQuiz(res.data);
             setEditQuiz(res.data);
             setQuestions(res.data.questions || []);
-        } catch (err) { navigate("/admin/quizzes"); }
+        } catch (err) { navigate("/portal/quizzes"); }
         finally { setLoading(false); }
     };
 
@@ -101,7 +101,7 @@ export default function AdminQuizBuilder() {
 
     return (
         <div className="p-6 md:p-10 max-w-7xl mx-auto text-white">
-            <button onClick={() => navigate("/admin/quizzes")} className="text-cyan-500 hover:outline mb-8 flex items-center gap-2 uppercase text-[10px] font-black tracking-widest">← Return to Vault</button>
+            <button onClick={() => navigate("/portal/quizzes")} className="text-cyan-500 hover:outline mb-8 flex items-center gap-2 uppercase text-[10px] font-black tracking-widest">← Return to Vault</button>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
 
