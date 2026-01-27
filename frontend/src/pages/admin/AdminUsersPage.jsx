@@ -17,10 +17,9 @@ export default function AdminUsersPage() {
     const [editUserId, setEditUserId] = useState(null);
 
     const [form, setForm] = useState({
-        username: "", email: "", password: "",
         role_ids: [],
         full_name: "", position: "", team_name: "",
-        year: "", branch: "", sig: "",
+        year: "", branch: "", sigs: [], // changed from sig string to sigs array
         is_active: true, is_public: true, is_alumni: false,
         custom_fields: {}
     });
@@ -29,6 +28,12 @@ export default function AdminUsersPage() {
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState("");
     const [deleteId, setDeleteId] = useState(null);
+
+    // Filter State
+    const [search, setSearch] = useState("");
+    const [filterRole, setFilterRole] = useState("");
+    const [filterSig, setFilterSig] = useState("");
+    const [sortBy, setSortBy] = useState("name"); // name, joined, role
 
     /* ================= LOAD DATA ================= */
     useEffect(() => { loadData(); }, []);
@@ -69,7 +74,11 @@ export default function AdminUsersPage() {
             team_name: user.profile?.team_name || "",
             year: user.profile?.year || "",
             branch: user.profile?.branch || "",
-            sig: user.profile?.sig || "",
+            branch: user.profile?.branch || "",
+            // sig: user.profile?.sig || "", // Legacy
+            sigs: user.profile?.sigs || [], // Array of IDs if serializer sends it, OR we need to fetch it. 
+            // NOTE: The current serializer `MemberProfileSerializer` uses __all__, so `sigs` field should be present (list of IDs).
+            is_active: user.is_active,
             is_active: user.is_active,
             is_public: user.profile?.is_public !== false,
             is_alumni: user.profile?.is_alumni || false,
@@ -86,6 +95,7 @@ export default function AdminUsersPage() {
             const fd = new FormData();
             Object.entries(form).forEach(([k, v]) => {
                 if (k === 'role_ids') v.forEach(id => fd.append('role_ids', id));
+                else if (k === 'sigs') v.forEach(id => fd.append('sigs', id));
                 else if (k === 'custom_fields') fd.append(k, JSON.stringify(v));
                 else fd.append(k, v);
             });
@@ -103,13 +113,29 @@ export default function AdminUsersPage() {
 
     // Filter Fields based on selected SIG
     const visibleFields = fields.filter(f => {
-        // Show if no limit is set
         if (!f.limit_to_sig) return true;
-        // Or if limit matches selected SIG ID
-        // Note: form.sig is the SIG Name string (legacy compat), but limit_to_sig is ID.
-        // We need to match Name -> ID
-        const selectedSigObj = sigs.find(s => s.name === form.sig);
-        return selectedSigObj && f.limit_to_sig === selectedSigObj.id;
+        // Check if limit_to_sig is in selected form.sigs
+        // If form.sigs is array of IDs:
+        return form.sigs && form.sigs.includes(f.limit_to_sig);
+    });
+
+    // Derived Users
+    const filteredUsers = users.filter(u => {
+        const lowerSearch = search.toLowerCase();
+        const matchesSearch = u.username.toLowerCase().includes(lowerSearch) ||
+            (u.profile?.full_name || "").toLowerCase().includes(lowerSearch) ||
+            u.email.toLowerCase().includes(lowerSearch);
+
+        const matchesRole = filterRole ? (u.user_roles?.some(r => r.name === filterRole) || u.role === filterRole) : true;
+        // Filter by SIG (check if user has the sig)
+        // Note: user.profile.sigs is list of IDs. filterSig is likely ID or Name. Let's use ID.
+        const matchesSig = filterSig ? u.profile?.sigs?.includes(parseInt(filterSig)) : true;
+
+        return matchesSearch && matchesRole && matchesSig;
+    }).sort((a, b) => {
+        if (sortBy === 'name') return (a.profile?.full_name || a.username).localeCompare(b.profile?.full_name || b.username);
+        if (sortBy === 'role') return (a.profile?.position || "").localeCompare(b.profile?.position || "");
+        return 0;
     });
 
     return (
@@ -122,6 +148,27 @@ export default function AdminUsersPage() {
                 </div>
             </div>
 
+            {/* FILTERS */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                <input
+                    placeholder="Search users..."
+                    className="bg-black/40 border border-white/10 rounded-lg p-2.5 text-sm text-gray-300 focus:border-cyan-500 outline-none"
+                    value={search} onChange={e => setSearch(e.target.value)}
+                />
+                <select className="bg-black/40 border border-white/10 rounded-lg p-2.5 text-sm text-gray-300 focus:border-cyan-500 outline-none" value={filterRole} onChange={e => setFilterRole(e.target.value)}>
+                    <option value="">All Roles</option>
+                    {roles.map(r => <option key={r.id} value={r.name}>{r.name}</option>)}
+                </select>
+                <select className="bg-black/40 border border-white/10 rounded-lg p-2.5 text-sm text-gray-300 focus:border-cyan-500 outline-none" value={filterSig} onChange={e => setFilterSig(e.target.value)}>
+                    <option value="">All SIGs</option>
+                    {sigs.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                </select>
+                <select className="bg-black/40 border border-white/10 rounded-lg p-2.5 text-sm text-gray-300 focus:border-cyan-500 outline-none" value={sortBy} onChange={e => setSortBy(e.target.value)}>
+                    <option value="name">Sort by Name</option>
+                    <option value="role">Sort by Position</option>
+                </select>
+            </div>
+
             {/* TABLE */}
             <div className="glass overflow-auto rounded-xl">
                 <table className="w-full text-left">
@@ -129,13 +176,19 @@ export default function AdminUsersPage() {
                         <tr><th className="p-4">User</th><th className="p-4">Role/Position</th><th className="p-4 text-right">Action</th></tr>
                     </thead>
                     <tbody className="divide-y divide-white/10">
-                        {users.map(u => (
+                        {filteredUsers.map(u => (
                             <tr key={u.id} className="hover:bg-white/5">
                                 <td className="p-4 flex items-center gap-3">
                                     <div className="w-8 h-8 rounded-full bg-cyan-900 flex items-center justify-center text-xs">{u.username[0]}</div>
                                     <div>
                                         <div className="font-bold">{u.profile?.full_name || u.username}</div>
-                                        <div className="text-xs text-gray-400">{u.profile?.sig || "No SIG"}</div>
+                                        <div className="text-xs text-gray-400 flex flex-wrap gap-1">
+                                            {u.profile?.sigs?.map(sigId => {
+                                                const s = sigs.find(x => x.id === sigId);
+                                                return s ? <span key={s.id} className="bg-white/10 px-1 rounded">{s.name}</span> : null;
+                                            })}
+                                            {(!u.profile?.sigs || u.profile.sigs.length === 0) && "No SIG"}
+                                        </div>
 
                                         {/* Projects Info */}
                                         <div className="flex flex-wrap gap-1 mt-1">
@@ -202,11 +255,26 @@ export default function AdminUsersPage() {
                                 <div><label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-1.5">Full Name</label><input className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white focus:border-cyan-500 outline-none transition" value={form.full_name} onChange={e => setForm({ ...form, full_name: e.target.value })} /></div>
 
                                 <div className="grid grid-cols-2 gap-4">
-                                    <div><label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-1.5">Sector (SIG)</label>
-                                        <select className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white focus:border-cyan-500 outline-none transition" value={form.sig} onChange={e => setForm({ ...form, sig: e.target.value })}>
-                                            <option value="">None</option>
-                                            {sigs.map(s => <option key={s.id} value={s.name}>{s.name}</option>)}
-                                        </select></div>
+                                    <div><label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-1.5">Sector (SIGs)</label>
+                                        <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto bg-black/40 border border-white/10 rounded-xl p-2 custom-scrollbar">
+                                            {sigs.map(s => (
+                                                <label key={s.id} className={`flex items-center gap-2 px-2 py-1 rounded cursor-pointer border transition text-[10px] font-bold uppercase ${form.sigs?.includes(s.id) ? 'bg-cyan-500/20 border-cyan-500 text-cyan-400' : 'border-white/10 text-gray-400 hover:border-white/30'}`}>
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={form.sigs?.includes(s.id)}
+                                                        onChange={e => {
+                                                            const newSigs = e.target.checked
+                                                                ? [...(form.sigs || []), s.id]
+                                                                : (form.sigs || []).filter(id => id !== s.id);
+                                                            setForm({ ...form, sigs: newSigs });
+                                                        }}
+                                                        className="hidden"
+                                                    />
+                                                    {s.name}
+                                                </label>
+                                            ))}
+                                        </div>
+                                    </div>
                                     <div><label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-1.5">Hierarchy Pos</label>
                                         <select className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white focus:border-cyan-500 outline-none transition" value={form.position} onChange={e => setForm({ ...form, position: e.target.value })}>
                                             <option value="">None</option>
@@ -268,7 +336,7 @@ export default function AdminUsersPage() {
                                 {visibleFields.length > 0 && (
                                     <div className="bg-cyan-500/5 p-4 rounded-xl border border-cyan-500/20">
                                         <h4 className="text-[10px] font-black text-cyan-500 mb-4 uppercase tracking-widest border-b border-cyan-500/10 pb-2">
-                                            {form.sig ? `${form.sig} Core Protocols` : "Extended Metadata"}
+                                            Extended Metadata
                                         </h4>
                                         <div className="space-y-4">
                                             {visibleFields.map(f => (

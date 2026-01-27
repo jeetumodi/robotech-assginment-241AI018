@@ -17,8 +17,13 @@ export default function AdminProfile() {
         instagram_url: "",
         email: "",
         description: "",
-        is_public: true // Default
+        email: "",
+        description: "",
+        is_public: true, // Default
+        sigs: [] // Array of IDs
     });
+
+    const [availableSigs, setAvailableSigs] = useState([]);
 
     const [loading, setLoading] = useState(false);
     const [image, setImage] = useState(null);
@@ -39,10 +44,17 @@ export default function AdminProfile() {
                 instagram_url: user.profile.instagram_url || "",
                 email: user.profile.email || user.email || "",
                 description: user.profile.description || "",
-                is_public: user.profile.is_public !== false // default true if undefined
+                instagram_url: user.profile.instagram_url || "",
+                email: user.profile.email || user.email || "",
+                description: user.profile.description || "",
+                is_public: user.profile.is_public !== false, // default true if undefined
+                sigs: user.profile.sigs || []
             });
             setPreview(user.profile.image);
         }
+
+        // Fetch SIGs
+        api.get("/sigs/").then(res => setAvailableSigs(res.data)).catch(err => console.error(err));
     }, [user]);
 
     const handleChange = (e) => {
@@ -65,7 +77,11 @@ export default function AdminProfile() {
 
         const fd = new FormData();
         Object.keys(form).forEach(key => {
-            fd.append(key, form[key]);
+            if (key === 'sigs') {
+                form[key].forEach(id => fd.append('sigs', id));
+            } else {
+                fd.append(key, form[key]);
+            }
         });
         if (image) {
             fd.append("image", image);
@@ -179,8 +195,25 @@ export default function AdminProfile() {
                                     <input name="year" value={form.year} onChange={handleChange} className="w-full bg-black/20 border border-white/10 rounded p-2 focus:border-purple-400 outline-none text-white" placeholder="e.g. 2nd Year" />
                                 </div>
                                 <div>
-                                    <label className="block text-xs text-gray-400 mb-1">SIG (Special Interest Group)</label>
-                                    <input name="sig" value={form.sig} onChange={handleChange} className="w-full bg-black/20 border border-white/10 rounded p-2 focus:border-purple-400 outline-none text-white" placeholder="e.g. Systems" />
+                                    <label className="block text-xs text-gray-400 mb-1">Assigned SIGs</label>
+                                    <div className="flex flex-wrap gap-2 bg-black/20 border border-white/10 rounded p-2 min-h-[42px]">
+                                        {availableSigs.map(s => (
+                                            <label key={s.id} className={`cursor-pointer px-2 py-1 rounded text-[10px] font-bold uppercase border transition select-none ${form.sigs.includes(s.id) ? 'bg-cyan-500/20 border-cyan-500 text-cyan-400' : 'border-white/10 text-gray-500 hover:border-white/30'}`}>
+                                                <input
+                                                    type="checkbox"
+                                                    className="hidden"
+                                                    checked={form.sigs.includes(s.id)}
+                                                    onChange={e => {
+                                                        const newSigs = e.target.checked
+                                                            ? [...form.sigs, s.id]
+                                                            : form.sigs.filter(id => id !== s.id);
+                                                        setForm({ ...form, sigs: newSigs });
+                                                    }}
+                                                />
+                                                {s.name}
+                                            </label>
+                                        ))}
+                                    </div>
                                 </div>
                             </div>
                         </div>

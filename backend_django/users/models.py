@@ -90,6 +90,7 @@ class MemberProfile(models.Model):
     year_of_joining = models.IntegerField(null=True, blank=True)
     
     sig = models.CharField(max_length=100, blank=True) 
+    sigs = models.ManyToManyField('Sig', blank=True, related_name='members') 
     position = models.CharField(max_length=100) 
     team_name = models.CharField(max_length=100, blank=True) 
     

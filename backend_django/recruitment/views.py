@@ -14,7 +14,7 @@ class RecruitmentDriveViewSet(viewsets.ModelViewSet):
         from users.permissions import GlobalPermission
         return [GlobalPermission()]
 
-    @action(detail=False, methods=['get'])
+    @action(detail=False, methods=['get'], permission_classes=[permissions.AllowAny])
     def active_public(self, request):
         """Public endpoint to get the current active recruitment drive"""
         drive = RecruitmentDrive.objects.filter(is_active=True, is_public=True).first()

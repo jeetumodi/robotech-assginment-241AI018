@@ -16,6 +16,13 @@ export default function ProjectDashboard() {
     const [project, setProject] = useState(null);
     const [loading, setLoading] = useState(true);
     const [seenMessageIds, setSeenMessageIds] = useState(new Set());
+    const [allUsers, setAllUsers] = useState([]);
+
+    useEffect(() => {
+        if (user) {
+            api.get("/management/").then(res => setAllUsers(res.data)).catch(err => console.error(err));
+        }
+    }, [user]);
 
     const activeTab = searchParams.get("tab") || "overview";
     const setActiveTab = (tab) => {
@@ -58,7 +65,7 @@ export default function ProjectDashboard() {
             setProject(data);
         } catch (err) {
             console.error(err);
-            if (!isSilent) navigate("/admin/projects");
+            if (!isSilent) navigate("/portal/projects");
         } finally {
             if (!isSilent) setLoading(false);
         }
@@ -90,7 +97,7 @@ export default function ProjectDashboard() {
         <div className="text-white">
             {/* Header Area */}
             <div className="mb-8">
-                <button onClick={() => navigate("/admin/projects")} className="text-sm text-cyan-400 hover:underline mb-4 block">← All Projects</button>
+                <button onClick={() => navigate("/portal/projects")} className="text-sm text-cyan-400 hover:underline mb-4 block">← All Projects</button>
                 <div className="flex flex-col md:flex-row justify-between items-start gap-6">
                     <div>
                         <div className="flex items-center gap-3 mb-2">
@@ -134,10 +141,10 @@ export default function ProjectDashboard() {
             {/* Content */}
             <div className="min-h-[500px]">
                 {activeTab === 'overview' && <OverviewTab project={project} />}
-                {activeTab === 'tasks' && <TasksTab project={project} user={user} onUpdate={loadProject} />}
+                {activeTab === 'tasks' && <TasksTab project={project} user={user} allUsers={allUsers} onUpdate={loadProject} />}
                 {activeTab === 'discussions' && <DiscussionsTab project={project} user={user} onUpdate={loadProject} />}
-                {activeTab === 'team' && <TeamTab project={project} user={user} onUpdate={loadProject} />}
-                {activeTab === 'manage' && <ManagementTab project={project} onUpdate={loadProject} />}
+                {activeTab === 'team' && <TeamTab project={project} user={user} allUsers={allUsers} onUpdate={loadProject} />}
+                {activeTab === 'manage' && <ManagementTab project={project} allUsers={allUsers} onUpdate={loadProject} />}
             </div>
         </div>
     );
@@ -203,15 +210,15 @@ function OverviewTab({ project }) {
     );
 }
 
-function TasksTab({ project, user, onUpdate }) {
-    const [newTask, setNewTask] = useState({ title: "", due_date: "", requirements: "" });
+function TasksTab({ project, user, allUsers, onUpdate }) {
+    const [newTask, setNewTask] = useState({ title: "", due_date: "", requirements: "", assigned_to: "" });
     const [showAdd, setShowAdd] = useState(false);
 
     const handleAdd = async () => {
         if (!newTask.title) return;
         try {
             await api.post("/tasks/", { ...newTask, project: project.id });
-            setNewTask({ title: "", due_date: "", requirements: "" });
+            setNewTask({ title: "", due_date: "", requirements: "", assigned_to: "" });
             setShowAdd(false);
             onUpdate();
         } catch (err) { alert("Failed"); }
@@ -233,7 +240,13 @@ function TasksTab({ project, user, onUpdate }) {
                 <div className="bg-[#1a1a20] border border-cyan-500/30 rounded-xl p-6 animate-fade-in">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                         <input className="bg-black/40 border border-white/10 rounded p-2 text-sm" placeholder="Task Objective..." value={newTask.title} onChange={e => setNewTask({ ...newTask, title: e.target.value })} />
-                        <input type="date" className="bg-black/40 border border-white/10 rounded p-2 text-sm text-gray-400" value={newTask.due_date} onChange={e => setNewTask({ ...newTask, due_date: e.target.value })} />
+                        <div className="grid grid-cols-2 gap-2">
+                            <input type="date" className="bg-black/40 border border-white/10 rounded p-2 text-sm text-gray-400" value={newTask.due_date} onChange={e => setNewTask({ ...newTask, due_date: e.target.value })} />
+                            <select className="bg-black/40 border border-white/10 rounded p-2 text-sm text-gray-400" value={newTask.assigned_to} onChange={e => setNewTask({ ...newTask, assigned_to: e.target.value })}>
+                                <option value="">Unassigned</option>
+                                {allUsers?.map(u => <option key={u.id} value={u.id}>{u.username}</option>)}
+                            </select>
+                        </div>
                     </div>
                     <textarea className="w-full bg-black/40 border border-white/10 rounded p-2 text-sm mb-4 h-24" placeholder="Requirements & Technical Details..." value={newTask.requirements} onChange={e => setNewTask({ ...newTask, requirements: e.target.value })} />
                     <button onClick={handleAdd} className="bg-cyan-500 text-black px-6 py-2 rounded font-bold hover:bg-cyan-400 transition-all">Submit Assignment</button>
@@ -424,15 +437,8 @@ function DiscussionsTab({ project, user, onUpdate }) {
     );
 }
 
-function TeamTab({ project, user, onUpdate }) {
-    const [allUsers, setAllUsers] = useState([]);
+function TeamTab({ project, user, allUsers, onUpdate }) {
     const isLead = project.lead === user.id || user.is_superuser;
-
-    useEffect(() => {
-        if (isLead) {
-            api.get("/management/").then(res => setAllUsers(res.data)).catch(err => console.error(err));
-        }
-    }, [isLead]);
 
     const handleAddMember = async (targetUserId) => {
         if (!targetUserId) return;
@@ -535,9 +541,18 @@ function TeamTab({ project, user, onUpdate }) {
     );
 }
 
-function ManagementTab({ project, onUpdate }) {
+function ManagementTab({ project, allUsers, onUpdate }) {
     const [data, setData] = useState({ ...project });
     const [saving, setSaving] = useState(false);
+    const navigate = useNavigate();
+
+    const handleDelete = async () => {
+        if (!window.confirm("CRITICAL WARNING: This will permanently delete the project and all associated data. Are you sure?")) return;
+        try {
+            await api.delete(`/projects/${project.id}/`);
+            navigate("/portal/projects");
+        } catch (err) { alert("Deletion failed."); }
+    }
 
     const handleUpdate = async (e) => {
         e.preventDefault();
@@ -568,6 +583,14 @@ function ManagementTab({ project, onUpdate }) {
                     </div>
                 </div>
 
+                <div>
+                    <label className="block text-[10px] uppercase font-bold text-gray-500 mb-2">Project Lead</label>
+                    <select className="w-full bg-black/40 border border-white/20 rounded p-3 text-sm text-gray-300" value={data.lead || ""} onChange={e => setData({ ...data, lead: e.target.value })}>
+                        <option value="">No Lead Assigned</option>
+                        {allUsers?.map(u => <option key={u.id} value={u.id}>{u.username} ({u.profile?.full_name || 'N/A'})</option>)}
+                    </select>
+                </div>
+
                 <div><label className="block text-[10px] uppercase font-bold text-gray-500 mb-2">Classification</label>
                     <div className="flex items-center gap-6">
                         <label className="flex items-center gap-2 cursor-pointer bg-white/5 px-4 py-2 rounded border border-white/10 hover:border-cyan-500 transition-all">
@@ -581,7 +604,10 @@ function ManagementTab({ project, onUpdate }) {
                     </div>
                 </div>
 
-                <div className="pt-6">
+                <div className="pt-6 flex justify-between items-center">
+                    <button type="button" onClick={handleDelete} className="text-red-500 text-xs font-bold uppercase hover:underline">
+                        Delete Operation
+                    </button>
                     <button disabled={saving} className="bg-cyan-600 hover:bg-cyan-500 text-white px-10 py-3 rounded-lg font-bold uppercase tracking-widest shadow-lg shadow-cyan-500/20 active:scale-95 transition-all">
                         {saving ? 'SYNCHRONIZING...' : 'UPDATE OPERATION DATA'}
                     </button>

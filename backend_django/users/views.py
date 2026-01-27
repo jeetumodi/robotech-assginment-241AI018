@@ -139,6 +139,22 @@ class UserViewSet(viewsets.ModelViewSet):
                 profile.custom_fields = cf
             except: pass
 
+        if 'sigs' in data:
+            try:
+                # Expecting list of IDs
+                s_ids = data['sigs']
+                if hasattr(data, 'getlist'): s_ids = data.getlist('sigs')
+                
+                # If json string
+                if isinstance(s_ids, str): 
+                     try: s_ids = json.loads(s_ids)
+                     except: pass
+                
+                if isinstance(s_ids, list):
+                    profile.sigs.set(s_ids)
+            except Exception as e:
+                print("Error setting SIGs in UserViewSet:", e)
+
         if image_file: profile.image = image_file
         
         if profile.position:
@@ -272,6 +288,16 @@ class UserProfileView(APIView):
                  profile.is_public = True
 
         if 'image' in request.FILES: profile.image = request.FILES['image']
+
+        if 'sigs' in data:
+            try:
+                # Expecting list of IDs e.g. [1, 2] or json string
+                s_ids = data['sigs']
+                if isinstance(s_ids, str): s_ids = json.loads(s_ids)
+                if isinstance(s_ids, list):
+                    profile.sigs.set(s_ids)
+            except Exception as e:
+                print("Error setting SIGs:", e)
         
         profile.save()
         
