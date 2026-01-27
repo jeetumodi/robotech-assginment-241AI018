@@ -13,4 +13,5 @@ class EventViewSet(viewsets.ModelViewSet):
         return Event.objects.all().order_by('-date')
 
     def perform_create(self, serializer):
-        serializer.save()
+        # Set the lead to the current user if not explicitly provided
+        serializer.save(lead=self.request.user)

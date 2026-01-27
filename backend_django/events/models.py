@@ -8,9 +8,21 @@ class Event(models.Model):
         ('CANCELLED', 'Cancelled'),
     ]
 
+    SCOPE_CHOICES = [
+        ('GLOBAL', 'Global'),
+        ('SIG', 'SIG Specific'),
+        ('PERSONAL', 'Personal'),
+    ]
+
     title = models.CharField(max_length=200)
     description = models.TextField()
-    date = models.DateTimeField()
+    date = models.DateTimeField(verbose_name='Event Date')
+    due_date = models.DateTimeField(null=True, blank=True)
+    
+    scope = models.CharField(max_length=20, choices=SCOPE_CHOICES, default='GLOBAL')
+    sig = models.ForeignKey('users.Sig', on_delete=models.SET_NULL, null=True, blank=True, related_name='events')
+    is_full_event = models.BooleanField(default=True)
+
     location = models.CharField(max_length=200, blank=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='UPCOMING')
     

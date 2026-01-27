@@ -95,4 +95,5 @@ class UserSerializer(serializers.ModelSerializer):
         if r.can_manage_messages: perms.add('can_manage_messages')
         if r.can_manage_sponsorship: perms.add('can_manage_sponsorship')
         if r.can_manage_forms: perms.add('can_manage_forms')
-        if r.name == 'WEB_LEAD': perms.add('can_manage_everything') 
+        if r.can_manage_content: perms.add('can_manage_content')
+        if r.name == 'WEB_LEAD': perms.add('can_manage_everything')  

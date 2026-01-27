@@ -25,6 +25,7 @@ export default function AdminRolesPage() {
         { key: "can_manage_messages", label: "Manage Contact Messages" },
         { key: "can_manage_sponsorship", label: "Manage Sponsorships" },
         { key: "can_manage_forms", label: "Manage Dynamic Forms" },
+        { key: "can_manage_content", label: "Manage Content (CMS)" }
     ];
 
     /* ================= LOAD DATA ================= */

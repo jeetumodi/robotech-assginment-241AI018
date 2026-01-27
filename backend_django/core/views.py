@@ -33,9 +33,25 @@ class GalleryViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['post'])
     def upload(self, request):
         images = request.FILES.getlist('images')
+        title = request.POST.get('title', '')
+        event_id = request.POST.get('event_id')
+        
+        event_obj = None
+        if event_id:
+             try:
+                 from events.models import Event
+                 event_obj = Event.objects.get(id=event_id)
+             except (Event.DoesNotExist, ValueError):
+                 pass
+
         created = []
         for img in images:
-            obj = GalleryImage.objects.create(image=img, uploaded_by=request.user)
+            obj = GalleryImage.objects.create(
+                image=img, 
+                uploaded_by=request.user,
+                title=title,
+                event=event_obj
+            )
             created.append(obj)
         return Response(GalleryImageSerializer(created, many=True).data)
 

@@ -17,6 +17,8 @@ class Announcement(models.Model):
 # 2. Gallery
 class GalleryImage(models.Model):
     image = models.ImageField(upload_to='gallery/')
+    title = models.CharField(max_length=200, blank=True)
+    event = models.ForeignKey('events.Event', on_delete=models.SET_NULL, null=True, blank=True, related_name='gallery_images')
     uploaded_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
     uploaded_at = models.DateTimeField(auto_now_add=True)
 

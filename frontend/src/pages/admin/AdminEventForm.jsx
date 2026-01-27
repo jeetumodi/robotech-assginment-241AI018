@@ -33,8 +33,13 @@ export default function AdminEventForm() {
     external_registration_link: "",
     external_links: [],
     event_date: dateParam || "",
-    due_date: ""
+    due_date: "",
+    scope: "GLOBAL",
+    sig: "",
+    is_full_event: true
   });
+
+  const [sigs, setSigs] = useState([]);
 
   const [bannerFile, setBannerFile] = useState(null);
   const [bannerPreview, setBannerPreview] = useState(null);
@@ -57,8 +62,18 @@ export default function AdminEventForm() {
 
   /* ================= LOAD EVENT (EDIT) ================= */
   useEffect(() => {
+    loadSigs();
     if (isEdit) loadEvent();
   }, [id]);
+
+  async function loadSigs() {
+    try {
+      const res = await api.get("/sigs/");
+      setSigs(res.data.results || res.data || []);
+    } catch (e) {
+      console.error("Failed to load SIGs", e);
+    }
+  }
 
   async function loadEvent() {
     const res = await api.get(`/events/${id}/`);
@@ -83,7 +98,10 @@ export default function AdminEventForm() {
         ? res.data.external_links
         : [],
       event_date: res.data.event_date ? res.data.event_date.slice(0, 16) : "",
-      due_date: res.data.due_date ? res.data.due_date.slice(0, 16) : ""
+      due_date: res.data.due_date ? res.data.due_date.slice(0, 16) : "",
+      scope: res.data.scope ?? "GLOBAL",
+      sig: res.data.sig ?? "",
+      is_full_event: res.data.is_full_event ?? true
     });
 
     if (res.data.banner_image) {
@@ -256,6 +274,59 @@ export default function AdminEventForm() {
               onChange={updateField}
               className="w-full bg-black/40 border border-white/10 rounded-lg p-3"
             />
+          </div>
+        </section>
+
+        {/* ===== SCOPE & TYPE ===== */}
+        <section className="space-y-4 border-t border-white/5 pt-4">
+          <h3 className="text-lg font-semibold text-cyan-300">Classification</h3>
+          <div className="grid sm:grid-cols-2 gap-4">
+            <div>
+              <label className="text-sm text-gray-400 mb-1 block">Scope</label>
+              <select
+                name="scope"
+                value={form.scope}
+                onChange={updateField}
+                className="w-full bg-black/40 border border-white/10 rounded-lg p-3 outline-none focus:border-cyan-500/50"
+              >
+                <option value="GLOBAL">Global (Whole Club)</option>
+                <option value="SIG">SIG Specific</option>
+                <option value="PERSONAL">Personal</option>
+              </select>
+            </div>
+
+            {form.scope === 'SIG' && (
+              <div>
+                <label className="text-sm text-gray-400 mb-1 block">Associated SIG</label>
+                <select
+                  name="sig"
+                  value={form.sig}
+                  onChange={updateField}
+                  className="w-full bg-black/40 border border-white/10 rounded-lg p-3 outline-none focus:border-cyan-500/50"
+                >
+                  <option value="">-- Select SIG --</option>
+                  {sigs.map(s => (
+                    <option key={s.id} value={s.id}>{s.name}</option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            <div className="sm:col-span-2">
+              <label className="flex items-center gap-3 p-3 rounded-lg border border-white/10 bg-black/20 cursor-pointer hover:border-white/30 transition">
+                <input
+                  type="checkbox"
+                  name="is_full_event"
+                  checked={form.is_full_event}
+                  onChange={updateField}
+                  className="w-5 h-5 accent-cyan-500"
+                />
+                <div>
+                  <span className="block font-medium text-white">Full Event Page</span>
+                  <span className="block text-xs text-gray-400">If unchecked, this will be a calendar-only entry with no dedicated page.</span>
+                </div>
+              </label>
+            </div>
           </div>
         </section>
 

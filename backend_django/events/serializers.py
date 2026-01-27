@@ -5,6 +5,8 @@ from users.serializers import UserSerializer
 class EventSerializer(serializers.ModelSerializer):
     lead_details = UserSerializer(source='lead', read_only=True)
     volunteers_details = UserSerializer(source='volunteers', many=True, read_only=True)
+    event_date = serializers.DateTimeField(source='date', required=False)
+    creator_email = serializers.EmailField(source='lead.email', read_only=True)
     
     class Meta:
         model = Event

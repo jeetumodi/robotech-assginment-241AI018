@@ -62,6 +62,7 @@ class Role(models.Model):
     can_manage_messages = models.BooleanField(default=False)
     can_manage_sponsorship = models.BooleanField(default=False)
     can_manage_forms = models.BooleanField(default=False)
+    can_manage_content = models.BooleanField(default=False)
     
     def __str__(self):
         return self.name

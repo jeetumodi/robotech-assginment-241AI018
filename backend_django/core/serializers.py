@@ -12,13 +12,17 @@ class AnnouncementSerializer(serializers.ModelSerializer):
 
 class GalleryImageSerializer(serializers.ModelSerializer):
     image_path = serializers.SerializerMethodField()
+    event_title = serializers.SerializerMethodField()
 
     class Meta:
         model = GalleryImage
-        fields = ['id', 'image', 'image_path', 'uploaded_at']
+        fields = ['id', 'image', 'image_path', 'uploaded_at', 'title', 'event', 'event_title']
 
     def get_image_path(self, obj):
         return obj.image.name
+
+    def get_event_title(self, obj):
+        return obj.event.title if obj.event else None
 
 class SponsorshipSerializer(serializers.ModelSerializer):
     class Meta:
