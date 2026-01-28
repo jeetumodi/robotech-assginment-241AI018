@@ -11,6 +11,12 @@ export default function AdminLogin() {
   const errorRef = useRef(null);
   const navigate = useNavigate();
 
+  useEffect(() => {
+    if (localStorage.getItem("accessToken")) {
+      navigate("/");
+    }
+  }, [navigate]);
+
   const submit = async (e) => {
     e.preventDefault();
     setError("");
@@ -27,8 +33,8 @@ export default function AdminLogin() {
       localStorage.setItem("accessToken", res.data.access);
       localStorage.setItem("refreshToken", res.data.refresh);
 
-      // Navigate to Dashboard on success
-      navigate("/portal/dashboard");
+      // Navigate to Home Page on success
+      navigate("/");
     } catch (err) {
       setError(err.response?.data?.message || err.response?.data?.detail || "Invalid login credentials.");
     } finally {

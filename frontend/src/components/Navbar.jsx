@@ -101,7 +101,11 @@ export default function Navbar() {
             <Link to="/sponsorship" className="nav-link">Sponsor Us</Link>
             <Link to="/contactUs" className="nav-link">Contact Us</Link>
             <Link to="/announcements" className="nav-link">Announcements</Link>
-            <Link to="/login" className="px-4 py-2 bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 border border-cyan-500/50 rounded-md transition-colors">Login</Link>
+            {localStorage.getItem("accessToken") ? (
+              <Link to="/portal/dashboard" className="px-4 py-2 bg-green-500/10 hover:bg-green-500/20 text-green-400 border border-green-500/50 rounded-md transition-colors">Dashboard</Link>
+            ) : (
+              <Link to="/login" className="px-4 py-2 bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 border border-cyan-500/50 rounded-md transition-colors">Login</Link>
+            )}
           </div>
 
           {/* Mobile Button */}
@@ -181,7 +185,11 @@ export default function Navbar() {
             <Link onClick={() => setMobileOpen(false)} to="/sponsorship" className="mobile-link">Sponsor Us</Link>
             <Link onClick={() => setMobileOpen(false)} to="/contactUs" className="mobile-link">Contact Us</Link>
             <Link onClick={() => setMobileOpen(false)} to="/announcements" className="mobile-link">Announcements</Link>
-            <Link onClick={() => setMobileOpen(false)} to="/login" className="mobile-link text-cyan-400 font-semibold">Login</Link>
+            {localStorage.getItem("accessToken") ? (
+              <Link onClick={() => setMobileOpen(false)} to="/portal/dashboard" className="mobile-link text-green-400 font-semibold">Dashboard</Link>
+            ) : (
+              <Link onClick={() => setMobileOpen(false)} to="/login" className="mobile-link text-cyan-400 font-semibold">Login</Link>
+            )}
           </div>
         </div>
       )}
