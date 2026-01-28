@@ -17,6 +17,8 @@ export default function AdminGuard({ children }) {
       .then(() => setAllowed(true))
       .catch(() => {
         // Token might be expired, try refreshing or logout
+        localStorage.removeItem("accessToken");
+        localStorage.removeItem("refreshToken");
         setAllowed(false);
       });
   }, []);
