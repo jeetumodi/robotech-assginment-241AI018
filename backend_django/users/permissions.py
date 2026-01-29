@@ -10,7 +10,7 @@ class GlobalPermission(permissions.BasePermission):
     def has_permission(self, request, view):
         user = request.user
         view_name = view.__class__.__name__
-        print(f"DEBUG: Permission check for {view_name} [{request.method}] User: {user}")
+        print(f"DEBUG: Permission check for {view_name} [{request.method}] User: {user} Roles: {[r.name for r in user.user_roles.all()]}")
         
         # 0. Public Bypass for Submissions (Unauthenticated ok)
         public_post_views = [
@@ -42,9 +42,6 @@ class GlobalPermission(permissions.BasePermission):
         if view_name in public_read_views and request.method in permissions.SAFE_METHODS:
             return True
 
-        if request.method in permissions.SAFE_METHODS:
-            return True
-
         if not user or not user.is_authenticated:
             return False
         
@@ -69,14 +66,14 @@ class GlobalPermission(permissions.BasePermission):
             except: pass
             
             return False
-
+            
         # 3. Web Lead / Security Manager check (Full Access)
         if check_flag('can_manage_security'):
             return True
 
-        # 4. Shared Visibility: All authenticated users can view all data
-        if request.method in permissions.SAFE_METHODS:
-            return True
+        # 4. Shared Visibility Check removed to enforce Strict RBAC
+        # if request.method in permissions.SAFE_METHODS:
+        #    return True
 
         # 5. Mutation Mapping
         perm_map = {
