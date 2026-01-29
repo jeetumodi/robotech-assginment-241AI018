@@ -48,7 +48,7 @@ export default function AdminProfile() {
                 email: user.profile.email || user.email || "",
                 description: user.profile.description || "",
                 is_public: user.profile.is_public !== false, // default true if undefined
-                sigs: user.profile.sigs || []
+                sigs: user.profile.sigs ? user.profile.sigs.map(s => typeof s === 'object' ? s.id : s) : []
             });
             setPreview(user.profile.image);
         }

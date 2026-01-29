@@ -131,7 +131,7 @@ export default function AdminUsersPage() {
         const matchesRole = filterRole ? (u.user_roles?.some(r => r.name === filterRole) || u.role === filterRole) : true;
         // Filter by SIG (check if user has the sig)
         // Note: user.profile.sigs is list of IDs. filterSig is likely ID or Name. Let's use ID.
-        const matchesSig = filterSig ? u.profile?.sigs?.includes(parseInt(filterSig)) : true;
+        const matchesSig = filterSig ? u.profile?.sigs?.some(s => s.id === parseInt(filterSig)) : true;
 
         return matchesSearch && matchesRole && matchesSig;
     }).sort((a, b) => {

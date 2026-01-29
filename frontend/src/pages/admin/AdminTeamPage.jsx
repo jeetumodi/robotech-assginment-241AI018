@@ -57,7 +57,12 @@ export default function AdminTeamPage() {
         groups["Alumni"].push(user);
       } else {
         // Determine SIG
-        const sig = profile.sig || "Unassigned";
+        let sig = profile.sig;
+        if (!sig && profile.sigs && profile.sigs.length > 0) {
+          // Fallback to first SIG in the list if primary sig is not set
+          sig = profile.sigs[0].name || "Unassigned";
+        }
+        sig = sig || "Unassigned";
         if (!groups[sig]) groups[sig] = [];
         groups[sig].push(user);
       }
