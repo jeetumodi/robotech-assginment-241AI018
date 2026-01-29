@@ -32,6 +32,10 @@ export default function AdminFormBuilder() {
     const [editTitle, setEditTitle] = useState("");
     const [editDescription, setEditDescription] = useState("");
 
+    const [editSuccessMsg, setEditSuccessMsg] = useState("");
+    const [editSuccessLink, setEditSuccessLink] = useState("");
+    const [editSuccessLinkLabel, setEditSuccessLinkLabel] = useState("");
+
     const [newSectionTitle, setNewSectionTitle] = useState("");
     const [activeSectionId, setActiveSectionId] = useState(null);
 
@@ -50,6 +54,10 @@ export default function AdminFormBuilder() {
             setForm(res.data);
             setEditTitle(res.data.title);
             setEditDescription(res.data.description);
+            setEditSuccessMsg(res.data.success_message || "Your response has been integrated. Session terminates now.");
+            setEditSuccessLink(res.data.success_link || "");
+            setEditSuccessLinkLabel(res.data.success_link_label || "Continue");
+
             if (res.data.sections?.length > 0 && !activeSectionId) {
                 setActiveSectionId(res.data.sections[0].id);
             }
@@ -71,7 +79,10 @@ export default function AdminFormBuilder() {
         try {
             await api.patch(`/forms/${id}/`, {
                 title: editTitle,
-                description: editDescription
+                description: editDescription,
+                success_message: editSuccessMsg,
+                success_link: editSuccessLink,
+                success_link_label: editSuccessLinkLabel
             });
             setIsEditingMeta(false);
             fetchForm();
@@ -158,9 +169,10 @@ export default function AdminFormBuilder() {
                 <div className="flex-1">
                     <button onClick={() => navigate("/portal/forms")} className="text-sm text-orange-400 hover:outline mb-4 flex items-center gap-2">← Navigator</button>
                     {isEditingMeta ? (
-                        <div className="space-y-3 max-w-2xl">
+                        <div className="space-y-3 max-w-2xl bg-[#0a0a0f] p-6 rounded-2xl border border-white/10">
+                            <h3 className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Primary Metadata</h3>
                             <input
-                                className="w-full bg-black/40 border border-white/10 rounded-lg p-3 text-2xl font-bold font-[Orbitron] text-white focus:border-orange-500 outline-none"
+                                className="w-full bg-black/40 border border-white/10 rounded-lg p-3 text-xl font-bold font-[Orbitron] text-white focus:border-orange-500 outline-none"
                                 value={editTitle}
                                 onChange={e => setEditTitle(e.target.value)}
                                 placeholder="Form Title"
@@ -171,9 +183,34 @@ export default function AdminFormBuilder() {
                                 onChange={e => setEditDescription(e.target.value)}
                                 placeholder="Description"
                             />
-                            <div className="flex gap-2">
-                                <button onClick={handleUpdateMeta} className="px-4 py-2 bg-green-600 hover:bg-green-500 rounded-lg text-xs font-bold uppercase transition">Save Updates</button>
-                                <button onClick={() => setIsEditingMeta(false)} className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-xs font-bold uppercase transition">Cancel</button>
+
+                            <div className="pt-4 border-t border-white/5 mt-4">
+                                <h3 className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Post-Submission Actions</h3>
+                                <textarea
+                                    className="w-full bg-black/40 border border-white/10 rounded-lg p-3 text-gray-300 focus:border-orange-500 outline-none h-20 mb-2"
+                                    value={editSuccessMsg}
+                                    onChange={e => setEditSuccessMsg(e.target.value)}
+                                    placeholder="Success Message (e.g. Thanks for submitting...)"
+                                />
+                                <div className="grid grid-cols-2 gap-2">
+                                    <input
+                                        className="w-full bg-black/40 border border-white/10 rounded-lg p-3 text-sm focus:border-orange-500 outline-none"
+                                        value={editSuccessLink}
+                                        onChange={e => setEditSuccessLink(e.target.value)}
+                                        placeholder="Redirect Link (https://...)"
+                                    />
+                                    <input
+                                        className="w-full bg-black/40 border border-white/10 rounded-lg p-3 text-sm focus:border-orange-500 outline-none"
+                                        value={editSuccessLinkLabel}
+                                        onChange={e => setEditSuccessLinkLabel(e.target.value)}
+                                        placeholder="Link Button Label"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="flex gap-2 pt-4">
+                                <button onClick={handleUpdateMeta} className="px-6 py-3 bg-green-600 hover:bg-green-500 rounded-lg text-xs font-bold uppercase transition">Save Configuration</button>
+                                <button onClick={() => setIsEditingMeta(false)} className="px-6 py-3 bg-gray-700 hover:bg-gray-600 rounded-lg text-xs font-bold uppercase transition">Cancel</button>
                             </div>
                         </div>
                     ) : (

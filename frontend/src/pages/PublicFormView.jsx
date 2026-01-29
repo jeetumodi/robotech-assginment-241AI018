@@ -168,8 +168,24 @@ export default function PublicFormView() {
                 <div className={`max-w-md w-full text-center p-12 rounded-[40px] ${theme.card}`}>
                     <div className={`w-24 h-24 rounded-full flex items-center justify-center text-5xl mx-auto mb-8 border-4 ${theme.accent.replace('text', 'border')}`}>✓</div>
                     <h1 className={`text-4xl font-bold mb-4 uppercase tracking-tighter ${theme.font}`}>Nexus Sync Success</h1>
-                    <p className="opacity-70 leading-relaxed text-sm mb-10">Your response has been integrated. Session terminates now.</p>
-                    <button onClick={() => window.close()} className={`px-10 py-4 text-xs font-black rounded-2xl transition-all ${theme.btn}`}>End Link</button>
+                    <p className="opacity-70 leading-relaxed text-sm mb-10 text-center max-w-lg">
+                        {form.success_message || "Your response has been integrated. Session terminates now."}
+                    </p>
+
+                    {form.success_link ? (
+                        <a
+                            href={form.success_link}
+                            target="_blank"
+                            rel="noreferrer"
+                            className={`px-10 py-4 text-xs font-black rounded-2xl transition-all uppercase tracking-widest ${theme.btn}`}
+                        >
+                            {form.success_link_label || "Continue"}
+                        </a>
+                    ) : (
+                        <button onClick={() => window.close()} className={`px-10 py-4 text-xs font-black rounded-2xl transition-all ${theme.btn}`}>
+                            End Link
+                        </button>
+                    )}
                     <p className={`mt-8 text-[10px] uppercase font-bold tracking-widest ${theme.accent}`}>RoboTech Intelligence Core</p>
                 </div>
             </div>

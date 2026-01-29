@@ -14,6 +14,12 @@ class Form(models.Model):
     title = models.CharField(max_length=200)
     description = models.TextField(blank=True)
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='created_forms')
+    
+    # Post-Submission Actions
+    success_message = models.TextField(blank=True, default="Your response has been integrated. Session terminates now.")
+    success_link = models.URLField(blank=True, help_text="Optional link to redirect to or show after submission")
+    success_link_label = models.CharField(max_length=50, blank=True, default="Continue", help_text="Label for the success link button")
+
     is_active = models.BooleanField(default=True)
     theme = models.CharField(max_length=30, choices=THEME_CHOICES, default='cyberpunk')
     closes_at = models.DateTimeField(null=True, blank=True, help_text="Automatic closure timestamp")
