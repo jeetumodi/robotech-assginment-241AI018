@@ -417,7 +417,9 @@ function DiscussionsTab({ project, user, onUpdate }) {
                                 <div key={m.id} className={`flex flex-col ${m.author === user.id ? 'items-end' : 'items-start'} animate-slide-in`}>
                                     <div className="flex items-center gap-2 mb-2">
                                         <span className={`text-[10px] font-bold ${m.author === user.id ? 'text-cyan-400' : 'text-gray-500'}`}>{m.author_details?.username}</span>
-                                        <span className="text-[8px] text-gray-700 font-mono">{new Date(m.created_at).toLocaleTimeString()}</span>
+                                        <span className="text-[8px] text-gray-700 font-mono">
+                                            {new Date(m.created_at).toLocaleDateString()} {new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                        </span>
                                     </div>
                                     <div className={`p-4 rounded-2xl text-sm max-w-[75%] leading-relaxed shadow-xl ${m.author === user.id ? 'bg-cyan-600 text-white rounded-tr-none' : 'bg-white/5 text-gray-100 border border-white/5 rounded-tl-none'}`}>
                                         {m.content}

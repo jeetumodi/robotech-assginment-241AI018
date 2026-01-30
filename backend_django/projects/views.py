@@ -7,6 +7,8 @@ from .serializers import (
     ProjectRequestSerializer, ProjectThreadSerializer, ThreadMessageSerializer
 )
 from users.permissions import GlobalPermission
+from .permissions import IsProjectMember
+from rest_framework.permissions import IsAuthenticated
 
 class ProjectViewSet(viewsets.ModelViewSet):
     serializer_class = ProjectSerializer
@@ -120,9 +122,12 @@ class ProjectRequestViewSet(viewsets.ModelViewSet):
 class ProjectThreadViewSet(viewsets.ModelViewSet):
     queryset = ProjectThread.objects.all()
     serializer_class = ProjectThreadSerializer
-    permission_classes = [GlobalPermission]
+    permission_classes = [IsAuthenticated, IsProjectMember]
 
     def perform_create(self, serializer):
+        project = serializer.validated_data.get('project')
+        if project and not (self.request.user == project.lead or self.request.user in project.members.all()):
+            raise permissions.PermissionDenied("Must be a project member.")
         serializer.save(created_by=self.request.user)
 
     @action(detail=True, methods=['post'])
@@ -141,9 +146,12 @@ class ProjectThreadViewSet(viewsets.ModelViewSet):
 class ThreadMessageViewSet(viewsets.ModelViewSet):
     queryset = ThreadMessage.objects.all()
     serializer_class = ThreadMessageSerializer
-    permission_classes = [GlobalPermission]
+    permission_classes = [IsAuthenticated, IsProjectMember]
 
     def perform_create(self, serializer):
+        thread = serializer.validated_data.get('thread')
+        if thread and not (self.request.user == thread.project.lead or self.request.user in thread.project.members.all()):
+            raise permissions.PermissionDenied("Must be a project member.")
         message = serializer.save(author=self.request.user)
         
         # EPHEMERAL CLEANUP: If thread is ephemeral, delete messages older than 1 hour

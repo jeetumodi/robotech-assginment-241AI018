@@ -26,9 +26,14 @@ class AnnouncementViewSet(viewsets.ModelViewSet):
         return Response({'status': 'published'})
 
 class GalleryViewSet(viewsets.ModelViewSet):
-    queryset = GalleryImage.objects.all().order_by('-uploaded_at')
-    serializer_class = GalleryImageSerializer
     permission_classes = [GlobalPermission]
+
+    def get_queryset(self):
+        qs = GalleryImage.objects.all().order_by('-uploaded_at')
+        event_id = self.request.query_params.get('event')
+        if event_id:
+            qs = qs.filter(event_id=event_id)
+        return qs
 
     @action(detail=False, methods=['post'])
     def upload(self, request):

@@ -144,6 +144,39 @@ export default function AdminFormBuilder() {
         } catch (err) { alert("Failed to delete section"); }
     };
 
+    const handleMoveField = async (field, direction) => {
+        const currentFields = form.fields
+            .filter(f => f.section === activeSectionId)
+            .sort((a, b) => a.order - b.order);
+
+        const idx = currentFields.findIndex(f => f.id === field.id);
+        if (idx === -1) return;
+        const targetIdx = idx + direction;
+
+        if (targetIdx < 0 || targetIdx >= currentFields.length) return;
+
+        const targetField = currentFields[targetIdx];
+
+        try {
+            // Swap orders
+            // If orders are identical (legacy data), enforce index-based reordering
+            let newOrderCurrent = targetField.order;
+            let newOrderTarget = field.order;
+
+            if (newOrderCurrent === newOrderTarget) {
+                newOrderCurrent = targetIdx;
+                newOrderTarget = idx;
+            }
+
+            await Promise.all([
+                api.patch(`/form-fields/${field.id}/`, { order: newOrderCurrent }),
+                api.patch(`/form-fields/${targetField.id}/`, { order: newOrderTarget })
+            ]);
+
+            fetchForm();
+        } catch (err) { alert("Reorder failed"); }
+    };
+
     const handleToggleActive = async () => {
         try {
             await api.patch(`/forms/${id}/`, { is_active: !form.is_active });
@@ -336,9 +369,26 @@ export default function AdminFormBuilder() {
                                                     </div>
                                                 </div>
                                             </div>
+                                            <div className="flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <button
+                                                    onClick={(e) => { e.stopPropagation(); handleMoveField(field, -1); }}
+                                                    className="p-1 hover:text-orange-400 text-gray-600"
+                                                    title="Move Up"
+                                                >
+                                                    ▲
+                                                </button>
+                                                <button
+                                                    onClick={(e) => { e.stopPropagation(); handleMoveField(field, 1); }}
+                                                    className="p-1 hover:text-orange-400 text-gray-600"
+                                                    title="Move Down"
+                                                >
+                                                    ▼
+                                                </button>
+                                            </div>
                                             <button
                                                 onClick={() => handleDeleteField(field.id)}
                                                 className="opacity-0 group-hover:opacity-100 p-2 text-gray-600 hover:text-red-500 transition-all hover:scale-110"
+                                                title="Delete Field"
                                             >
                                                 🗑️
                                             </button>

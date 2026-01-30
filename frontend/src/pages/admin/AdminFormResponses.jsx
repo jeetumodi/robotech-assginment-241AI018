@@ -95,8 +95,8 @@ export default function AdminFormResponses() {
                 </div>
             </div>
 
-            <div className="overflow-x-auto bg-[#0a0a0f] border border-white/5 rounded-3xl shadow-[0_0_50px_rgba(0,0,0,0.5)]">
-                <table className="w-full text-left border-collapse">
+            <div className="overflow-x-auto bg-[#0a0a0f] border border-white/5 rounded-3xl shadow-[0_0_50px_rgba(0,0,0,0.5)] scrollbar-thin scrollbar-thumb-orange-600 scrollbar-track-black pb-4">
+                <table className="w-full text-left border-collapse whitespace-nowrap">
                     <thead>
                         <tr className="bg-white/5 uppercase text-[10px] font-black tracking-widest text-gray-500 border-b border-white/5">
                             <th

@@ -6,10 +6,16 @@
 /* ================= CUSTOM ANIMATIONS (NO CONFIG FILE) ================= */
 
 @layer utilities {
+
   /* Marquee */
   @keyframes marquee {
-    0% { transform: translateX(0); }
-    100% { transform: translateX(-50%); }
+    0% {
+      transform: translateX(0);
+    }
+
+    100% {
+      transform: translateX(-50%);
+    }
   }
 
   .animate-marquee {
@@ -23,10 +29,12 @@
       transform: scale(0.7) rotate(-30deg);
       filter: blur(5px);
     }
+
     50% {
       opacity: 1;
       transform: scale(1.1) rotate(10deg);
     }
+
     100% {
       opacity: 1;
       transform: scale(1) rotate(0deg);
@@ -86,11 +94,13 @@ body {
     transform: scale(0.7) rotate(-30deg);
     filter: blur(5px);
   }
+
   50% {
     opacity: 1;
     transform: scale(1.1) rotate(10deg);
     filter: drop-shadow(0 0 40px #00fff2);
   }
+
   100% {
     opacity: 1;
     transform: scale(1) rotate(0deg);
@@ -196,6 +206,7 @@ section {
   0% {
     transform: translateX(0);
   }
+
   100% {
     transform: translateX(-50%);
   }
@@ -227,6 +238,7 @@ section {
   color: #00fff2;
   cursor: pointer;
 }
+
 /*  */
 
 .glass {
@@ -239,3 +251,23 @@ section {
 /* .neon-text {
   text-shadow: 0 0 10px #00fff2, 0 0 20px #00fff2;
 } */
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0f0f13;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #333;
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #ea580c;
+  /* Orange-600 */
+}

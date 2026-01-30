@@ -43,6 +43,7 @@ import AdminAttendanceDetail from "./pages/admin/AdminAttendanceDetail";
 /* ===== PUBLIC DETAILS ===== */
 import AnnouncementsPage from "./pages/AnnouncementsPage"
 import AnnouncementDetailPage from "./pages/AnnouncementDetailPage"
+import EventGalleryPage from "./pages/EventGalleryPage"
 import PublicFormView from "./pages/PublicFormView"
 import QuizPortal from "./pages/QuizPortal";
 import QuizEnrollment from "./pages/QuizEnrollment";
@@ -61,6 +62,7 @@ function App() {
       {/* ===== PUBLIC ROUTES ===== */}
       <Route path="/" element={<LandingPage />} />
       <Route path="/events" element={<Events />} />
+      <Route path="/events/:id/gallery" element={<EventGalleryPage />} />
       <Route path="/team" element={<TeamPage />} />
       <Route path="/contactUs" element={<ContactUsPage />} />
       <Route path="/announcements" element={<AnnouncementsPage />} />

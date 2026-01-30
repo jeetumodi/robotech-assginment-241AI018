@@ -93,30 +93,39 @@ export default function AdminProjectsPage() {
         <div className="text-center py-20 bg-white/5 rounded-xl border border-white/10"><p className="text-gray-400 mb-4">No active operations detected.</p></div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-          {projects.map(p => {
-            const isMember = p.members?.includes(user.id) || p.lead === user.id;
-            const hasRequested = p.join_requests?.some(r => r.user === user.id);
+          {projects
+            .sort((a, b) => {
+              const aIsMember = a.members?.includes(user.id) || a.lead === user.id;
+              const bIsMember = b.members?.includes(user.id) || b.lead === user.id;
+              // Sort by membership (true first), then by ID (newest first)
+              if (aIsMember && !bIsMember) return -1;
+              if (!aIsMember && bIsMember) return 1;
+              return b.id - a.id;
+            })
+            .map(p => {
+              const isMember = p.members?.includes(user.id) || p.lead === user.id;
+              const hasRequested = p.join_requests?.some(r => r.user === user.id);
 
-            return (
-              <ProjectCard
-                key={p.id}
-                project={p}
-                isMember={isMember}
-                hasRequested={hasRequested}
-                onJoin={() => setJoinModal(p.id)}
-                onClick={() => {
-                  if (isMember) navigate(`/portal/projects/${p.id}`);
-                  else if (user.permissions?.includes('can_manage_projects')) setSelectedProject(p);
-                  else alert("Restricted Area: Recruitment Pending.");
-                }}
-                onDelete={(e) => {
-                  e.stopPropagation();
-                  setDeleteModal(p);
-                }}
-                canDelete={user.is_superuser || p.lead === user.id}
-              />
-            );
-          })}
+              return (
+                <ProjectCard
+                  key={p.id}
+                  project={p}
+                  isMember={isMember}
+                  hasRequested={hasRequested}
+                  onJoin={() => setJoinModal(p.id)}
+                  onClick={() => {
+                    if (isMember) navigate(`/portal/projects/${p.id}`);
+                    else if (user.permissions?.includes('can_manage_projects')) setSelectedProject(p);
+                    else alert("Restricted Area: Recruitment Pending.");
+                  }}
+                  onDelete={(e) => {
+                    e.stopPropagation();
+                    setDeleteModal(p);
+                  }}
+                  canDelete={user.is_superuser || p.lead === user.id}
+                />
+              );
+            })}
         </div>
       )}
 
