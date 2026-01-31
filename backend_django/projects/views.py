@@ -76,23 +76,27 @@ class ProjectViewSet(viewsets.ModelViewSet):
         - members_status: { id: last_login } for all members + lead
         - threads_hash: { thread_id: last_message_id } to detect new messages
         """
-        project = self.get_object()
-        
-        # 1. Members Status
-        members = list(project.members.all())
-        if project.lead: members.append(project.lead)
-        members_status = {m.id: m.last_login for m in members}
-        
-        # 2. Threads State
-        threads_state = {}
-        for t in project.threads.all():
-            last_msg = t.messages.last()
-            threads_state[t.id] = last_msg.id if last_msg else 0
+        try:
+            project = self.get_object()
             
-        return Response({
-            "members_status": members_status,
-            "threads_state": threads_state
-        })
+            # 1. Members Status
+            members = list(project.members.all())
+            if project.lead: members.append(project.lead)
+            members_status = {m.id: m.last_login for m in members}
+            
+            # 2. Threads State
+            threads_state = {}
+            for t in project.threads.all():
+                last_msg = t.messages.last()
+                threads_state[t.id] = last_msg.id if last_msg else 0
+                
+            return Response({
+                "members_status": members_status,
+                "threads_state": threads_state
+            })
+        except Exception as e:
+            print(f"Sync State Error: {e}")
+            return Response({'error': str(e)}, status=500)
 
 class TaskViewSet(viewsets.ModelViewSet):
     queryset = Task.objects.all()
