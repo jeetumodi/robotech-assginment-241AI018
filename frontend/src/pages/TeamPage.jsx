@@ -1,14 +1,20 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import api from "../api/axios";
 import Navigation from "../components/Navbar";
 import Footer from "../components/Footer";
 
 export default function TeamPage() {
   const [data, setData] = useState({}); // { "Coding": [members], "Systems": [members] }
+  const [sigs, setSigs] = useState([]);
   const [loading, setLoading] = useState(true);
 
   // Filter state
   const [viewType, setViewType] = useState('current'); // 'current' or 'alumni'
+
+  useEffect(() => {
+    // Fetch SIG structure once (for ordering)
+    api.get("/sigs/").then(res => setSigs(res.data)).catch(console.error);
+  }, []);
 
   useEffect(() => {
     loadMembers();
@@ -59,7 +65,6 @@ export default function TeamPage() {
         return acc;
       }, {});
 
-      // Ensure standard SIGs appear in strict order if needed, but data-driven is better for CMS
       setData(grouped);
 
     } catch (err) {
@@ -68,6 +73,25 @@ export default function TeamPage() {
       setLoading(false);
     }
   };
+
+  const sortedSections = useMemo(() => {
+    const keys = Object.keys(data);
+    const ordered = [];
+    const seen = new Set();
+
+    // 1. Add ordered SIGs (defined in structure command)
+    sigs.forEach(s => {
+      if (keys.includes(s.name)) {
+        ordered.push(s.name);
+        seen.add(s.name);
+      }
+    });
+
+    // 2. Add remaining (e.g. "General Members" or undefined SIGs) sorted alphabetically
+    const others = keys.filter(k => !seen.has(k)).sort();
+
+    return [...ordered, ...others];
+  }, [data, sigs]);
 
   return (
     <>
@@ -121,7 +145,7 @@ export default function TeamPage() {
             </div>
           )}
 
-          {!loading && Object.entries(data).sort().map(([sigName, members]) => (
+          {!loading && sortedSections.map(sigName => (
             <div key={sigName} className="mb-24 animate-fade-in">
               {/* SIG Header */}
               <div className="flex items-center gap-4 mb-12">
@@ -133,7 +157,7 @@ export default function TeamPage() {
 
               {/* Cards Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-                {members.map(user => (
+                {data[sigName].map(user => (
                   <MemberCard key={user.id} user={user} />
                 ))}
               </div>

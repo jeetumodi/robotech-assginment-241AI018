@@ -14,9 +14,8 @@ export default function LandingPage() {
 
   const [activeProjectId, setActiveProjectId] = useState(null);
   const [activeImage, setActiveImage] = useState(null);
-  const [showSplash, setShowSplash] = useState(true);
+  const [showSplash, setShowSplash] = useState(() => !sessionStorage.getItem("splashShown"));
 
-  /* ================= LOAD DATA ================= */
   /* ================= LOAD DATA ================= */
   useEffect(() => {
     let isMounted = true;
@@ -45,12 +44,17 @@ export default function LandingPage() {
   }, []);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setShowSplash(false);
-    }, 3000);
+    if (showSplash) {
+      // Mark as shown immediately so refresh doesn't trigger it again
+      sessionStorage.setItem("splashShown", "true");
 
-    return () => clearTimeout(timer);
-  }, []);
+      const timer = setTimeout(() => {
+        setShowSplash(false);
+      }, 3000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [showSplash]);
   return (
     <>
       {/* ================= SPLASH ================= */}

@@ -13,6 +13,10 @@ export default function AdminFormResponses() {
     const [sortField, setSortField] = useState('submitted_at'); // default: newest first
     const [sortOrder, setSortOrder] = useState('desc');
 
+    // Pagination State
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 20;
+
     useEffect(() => {
         fetchData();
     }, [id]);
@@ -39,6 +43,7 @@ export default function AdminFormResponses() {
             setSortField(field);
             setSortOrder('asc');
         }
+        setCurrentPage(1); // Reset to first page
     };
 
     const getSortedResponses = () => {
@@ -75,6 +80,12 @@ export default function AdminFormResponses() {
 
     const fields = form.fields || [];
     const sortedResponses = getSortedResponses();
+
+    // Pagination Logic
+    const indexOfLastItem = currentPage * itemsPerPage;
+    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+    const currentResponses = sortedResponses.slice(indexOfFirstItem, indexOfLastItem);
+    const totalPages = Math.ceil(sortedResponses.length / itemsPerPage);
 
     const SortIndicator = ({ field }) => {
         if (sortField !== field) return <span className="opacity-0 group-hover:opacity-30 inline-block ml-1">⇅</span>;
@@ -129,7 +140,7 @@ export default function AdminFormResponses() {
                                 <td colSpan={fields.length + 3} className="p-20 text-center text-gray-600 italic uppercase text-xs font-bold tracking-[0.2em]">No signal data detected in this sector.</td>
                             </tr>
                         ) : (
-                            sortedResponses.map(res => (
+                            currentResponses.map(res => (
                                 <tr key={res.id} className="hover:bg-white/5 transition-colors group">
                                     <td className="p-6">
                                         <div className="flex items-center gap-3">
@@ -167,6 +178,34 @@ export default function AdminFormResponses() {
                     </tbody>
                 </table>
             </div>
+
+            {/* Pagination Controls */}
+            {sortedResponses.length > itemsPerPage && (
+                <div className="flex justify-between items-center mt-6">
+                    <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">
+                        Showing {indexOfFirstItem + 1}-{Math.min(indexOfLastItem, sortedResponses.length)} of {sortedResponses.length}
+                    </p>
+                    <div className="flex gap-2">
+                        <button
+                            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                            disabled={currentPage === 1}
+                            className="px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-xs font-bold text-gray-400 hover:text-white hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed transition uppercase tracking-widest"
+                        >
+                            Previous
+                        </button>
+                        <div className="flex items-center px-4 bg-black/40 border border-white/5 rounded-xl text-xs font-mono text-orange-400">
+                            Page {currentPage} / {totalPages}
+                        </div>
+                        <button
+                            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                            disabled={currentPage === totalPages}
+                            className="px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-xs font-bold text-gray-400 hover:text-white hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed transition uppercase tracking-widest"
+                        >
+                            Next
+                        </button>
+                    </div>
+                </div>
+            )}
 
             <p className="mt-6 text-center text-[10px] font-bold text-gray-600 uppercase tracking-widest">
                 Data Core Integration Active ● Signal Integrity Verified

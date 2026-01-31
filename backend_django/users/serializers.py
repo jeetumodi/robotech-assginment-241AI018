@@ -51,7 +51,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('id', 'username', 'email', 'role', 'user_roles', 'profile', 'is_active', 'permissions', 'projects_info')
+        fields = ('id', 'username', 'email', 'role', 'user_roles', 'profile', 'is_active', 'permissions', 'projects_info', 'last_login')
 
     def get_projects_info(self, obj):
         return {

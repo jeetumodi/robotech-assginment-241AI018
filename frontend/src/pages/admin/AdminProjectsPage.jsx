@@ -311,6 +311,26 @@ function ProjectManager({ project, users, onClose, onUpdate }) {
     try { await api.patch(`/tasks/${taskId}/`, { status: newStatus }); onUpdate(); } catch (err) { console.error(err); }
   };
 
+  const handleRequestStatus = async () => {
+    try {
+      await api.post(`/projects/${project.id}/request_status/`);
+      onUpdate();
+    } catch (err) {
+      console.error(err);
+      alert("Failed to request status.");
+    }
+  };
+
+  const handleSubmitStatus = async (updateText) => {
+    try {
+      await api.post(`/projects/${project.id}/submit_status/`, { update_text: updateText });
+      onUpdate();
+    } catch (err) {
+      console.error(err);
+      alert("Failed to submit status update.");
+    }
+  };
+
   // Filter Assignables
   const assignableUsers = users.filter(u => u.id === project.lead || (project.members && project.members.includes(u.id)));
 

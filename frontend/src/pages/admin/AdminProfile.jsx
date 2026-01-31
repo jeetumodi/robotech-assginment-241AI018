@@ -175,6 +175,12 @@ export default function AdminProfile() {
                                     <label className="block text-xs text-gray-400 mb-1">Email ID</label>
                                     <input name="email" value={form.email} onChange={handleChange} className="w-full bg-black/20 border border-white/10 rounded p-2 focus:border-cyan-400 outline-none text-white" />
                                 </div>
+                                <div>
+                                    <label className="block text-xs text-gray-400 mb-1">Last Portal Access</label>
+                                    <div className="w-full bg-black/20 border border-white/5 rounded p-2 text-gray-400 text-sm cursor-not-allowed">
+                                        {user?.last_login ? new Date(user.last_login).toLocaleString() : "Never"}
+                                    </div>
+                                </div>
                             </div>
                         </div>
 

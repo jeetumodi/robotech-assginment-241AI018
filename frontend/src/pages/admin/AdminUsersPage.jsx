@@ -175,7 +175,7 @@ export default function AdminUsersPage() {
             <div className="glass overflow-auto rounded-xl">
                 <table className="w-full text-left">
                     <thead className="bg-white/5 border-b border-white/10 text-xs uppercase text-cyan-400">
-                        <tr><th className="p-4">User</th><th className="p-4">Role/Position</th><th className="p-4 text-right">Action</th></tr>
+                        <tr><th className="p-4">User</th><th className="p-4">Role/Position</th><th className="p-4">Last Access</th><th className="p-4 text-right">Action</th></tr>
                     </thead>
                     <tbody className="divide-y divide-white/10">
                         {filteredUsers.map(u => (
@@ -205,6 +205,9 @@ export default function AdminUsersPage() {
                                 </td>
                                 <td className="p-4">
                                     <span className="text-sm bg-white/10 px-2 py-1 rounded border border-white/10">{u.profile?.position || "Member"}</span>
+                                </td>
+                                <td className="p-4 text-xs text-gray-400">
+                                    {u.last_login ? new Date(u.last_login).toLocaleString() : "Never"}
                                 </td>
                                 <td className="p-4 text-right">
                                     <button onClick={() => handleEdit(u)} className="text-cyan-400 hover:text-white mr-2">Edit</button>
