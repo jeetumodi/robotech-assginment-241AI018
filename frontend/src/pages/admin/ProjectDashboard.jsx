@@ -8,6 +8,12 @@ const UserIcon = () => <svg className="w-5 h-5" fill="none" stroke="currentColor
 const DiscussionIcon = () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z" /></svg>;
 const DeadlineIcon = () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>;
 
+const isUserOnline = (lastLogin) => {
+    if (!lastLogin) return false;
+    const diff = (new Date() - new Date(lastLogin)) / 1000 / 60; // minutes
+    return diff < 60;
+};
+
 export default function ProjectDashboard() {
     const { id } = useParams();
     const navigate = useNavigate();
@@ -91,15 +97,53 @@ export default function ProjectDashboard() {
         }
     };
 
-    // Auto Polling for Real-time feel
+    // Optimized Polling Logic (State Machine approach)
     useEffect(() => {
-        const interval = setInterval(() => {
-            if (activeTab === 'discussions') {
-                loadProject(true);
-            }
-        }, 5000); // 5s poll
+        const interval = setInterval(async () => {
+            // Only poll if we have a project loaded
+            if (!project) return;
+
+            try {
+                // Lightweight Sync Call
+                const res = await api.get(`/projects/${id}/sync_state/`);
+                const { members_status, threads_state } = res.data;
+
+                // 1. Update Member Statuses Locally (No full re-render of project structure needed)
+                // We create a new object only if status changed to avoid ref re-renders if possible
+                // But simplified: Update last_login in the appropriate member objects in state
+                setProject(prev => {
+                    if (!prev) return null;
+                    const updatedMembers = prev.members_details?.map(m => ({
+                        ...m,
+                        last_login: members_status[m.id] || m.last_login
+                    }));
+                    const updatedLead = prev.lead_details ? { ...prev.lead_details, last_login: members_status[prev.lead_details.id] || prev.lead_details.last_login } : prev.lead_details;
+
+                    // Check Thread Changes
+                    let needsThreadReload = false;
+                    if (activeTab === 'discussions') {
+                        prev.threads?.forEach(t => {
+                            const serverLastMsgId = threads_state[t.id] || 0;
+                            const localLastMsgId = t.messages?.length > 0 ? t.messages[t.messages.length - 1].id : 0;
+                            if (serverLastMsgId !== localLastMsgId) needsThreadReload = true;
+                        });
+                    }
+
+                    // If logic dictates reload, trigger it
+                    if (needsThreadReload) {
+                        loadProject(true); // This will overwrite state anyway
+                        return prev; // Return current prev, let loadProject handle update
+                    }
+
+                    // Otherwise just update statuses
+                    return { ...prev, members_details: updatedMembers, lead_details: updatedLead };
+                });
+
+            } catch (err) { console.error("Sync failed", err); }
+
+        }, 5000);
         return () => clearInterval(interval);
-    }, [id, activeTab]);
+    }, [id, activeTab, project]);
 
     // Clear unread when viewing thread
     useEffect(() => {
@@ -489,7 +533,15 @@ function DiscussionsTab({ project, user, onUpdate, unreadMsgIds, setUnreadMsgIds
                             {currentThread.messages?.map(m => (
                                 <div key={m.id} className={`flex flex-col ${m.author === user.id ? 'items-end' : 'items-start'} animate-slide-in`}>
                                     <div className="flex items-center gap-2 mb-2">
-                                        <span className={`text-[10px] font-bold ${m.author === user.id ? 'text-cyan-400' : 'text-gray-500'}`}>{m.author_details?.username}</span>
+                                        <span className={`text-[10px] font-bold flex items-center gap-1.5 ${m.author === user.id ? 'text-cyan-400' : 'text-gray-500'}`}>
+                                            {m.author_details?.username}
+                                            {m.author !== user.id && (
+                                                <span
+                                                    className={`w-1.5 h-1.5 rounded-full ${isUserOnline(m.author_details?.last_login) ? 'bg-green-500 shadow-[0_0_5px_rgba(34,197,94,0.8)]' : 'bg-gray-600'}`}
+                                                    title={isUserOnline(m.author_details?.last_login) ? 'Online' : 'Offline'}
+                                                />
+                                            )}
+                                        </span>
                                         <span className="text-[8px] text-gray-700 font-mono">
                                             {new Date(m.created_at).toLocaleDateString()} {new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                         </span>
@@ -551,12 +603,6 @@ function TeamTab({ project, user, allUsers, onUpdate }) {
             onUpdate();
         } catch (err) { alert("Operation failed."); }
     }
-
-    const isUserOnline = (lastLogin) => {
-        if (!lastLogin) return false;
-        const diff = (new Date() - new Date(lastLogin)) / 1000 / 60; // minutes
-        return diff < 60; // Considered online if logged in within last 60 minutes
-    };
 
     return (
         <div className="space-y-8">
