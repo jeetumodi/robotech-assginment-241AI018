@@ -122,6 +122,7 @@ class GlobalPermission(permissions.BasePermission):
             'RecruitmentDriveViewSet': 'can_manage_team',
             'TimelineEventViewSet': 'can_manage_team',
             'RecruitmentAssignmentViewSet': 'can_manage_team',
+            'RecruitmentApplicationViewSet': 'can_manage_team',
             'OptionViewSet': 'can_manage_forms',
         }
 

@@ -2,7 +2,7 @@ from rest_framework import viewsets, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from .models import RecruitmentDrive, TimelineEvent, RecruitmentAssignment, RecruitmentApplication
-from .serializers import RecruitmentDriveSerializer, TimelineEventSerializer, RecruitmentAssignmentSerializer
+from .serializers import RecruitmentDriveSerializer, TimelineEventSerializer, RecruitmentAssignmentSerializer, RecruitmentApplicationSerializer
 from django.db import transaction
 
 class RecruitmentDriveViewSet(viewsets.ModelViewSet):
@@ -30,9 +30,10 @@ class RecruitmentDriveViewSet(viewsets.ModelViewSet):
         identifier = request.data.get('identifier')
         drive_id = request.data.get('drive')
         file = request.FILES.get('assessment_file')
+        solution_link = request.data.get('solution_link')
         
-        if not identifier or not drive_id or not file:
-             return Response({"error": "Identifier, Drive, and File are required."}, status=400)
+        if not identifier or not drive_id or (not file and not solution_link):
+             return Response({"error": "Identifier, Drive, and either a File or Link are required."}, status=400)
              
         try:
             drive = RecruitmentDrive.objects.get(id=drive_id)
@@ -41,7 +42,9 @@ class RecruitmentDriveViewSet(viewsets.ModelViewSet):
                 drive=drive,
                 identifier=identifier
             )
-            app.assessment_file = file
+            if file: app.assessment_file = file
+            if solution_link: app.solution_link = solution_link
+            
             from django.utils import timezone
             app.assessment_submitted_at = timezone.now()
             if app.status == 'APPLIED' or app.status == 'ASSESSMENT_PENDING':
@@ -59,6 +62,21 @@ class TimelineEventViewSet(viewsets.ModelViewSet):
     serializer_class = TimelineEventSerializer
     # permission_classes = [GlobalPermission] -> Moved to get_permissions
     
+    def get_permissions(self):
+        from users.permissions import GlobalPermission
+        return [GlobalPermission()]
+
+class RecruitmentApplicationViewSet(viewsets.ModelViewSet):
+    queryset = RecruitmentApplication.objects.all()
+    serializer_class = RecruitmentApplicationSerializer
+    
+    def get_queryset(self):
+        qs = super().get_queryset()
+        drive_id = self.request.query_params.get('drive_id')
+        if drive_id:
+            qs = qs.filter(drive_id=drive_id)
+        return qs
+
     def get_permissions(self):
         from users.permissions import GlobalPermission
         return [GlobalPermission()]

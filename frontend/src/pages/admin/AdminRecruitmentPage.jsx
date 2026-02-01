@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Copy, Plus, Trash, ExternalLink, FileText, Upload } from "lucide-react";
+import { Copy, Plus, Trash, ExternalLink, FileText, Upload, Users, GraduationCap, Award, MessageSquare, Calendar, Download, ChevronRight } from "lucide-react";
 import api from "../../api/axios";
 import { formatDateIST } from "../../utils/dateUtils";
 
@@ -17,8 +17,12 @@ export default function AdminRecruitmentPage() {
 
     // Assignment Form
     const [sigs, setSigs] = useState([]);
-    const [assignmentForm, setAssignmentForm] = useState({ title: "", description: "", sig: "" });
+    const [assignmentForm, setAssignmentForm] = useState({ title: "", description: "", sig: "", external_link: "" });
     const [assignmentFile, setAssignmentFile] = useState(null);
+
+    // Candidate / Application State
+    const [applications, setApplications] = useState([]);
+    const [activeTab, setActiveTab] = useState("overview"); // 'overview' or 'applications'
 
     useEffect(() => {
         loadDrives();
@@ -35,16 +39,26 @@ export default function AdminRecruitmentPage() {
             setLoading(true);
             const res = await api.get("/recruitment/drives/");
             setDrives(res.data);
-            if (res.data.length > 0 && !selectedDrive) {
-                // Select active one or first
-                const active = res.data.find(d => d.is_active) || res.data[0];
-                setSelectedDrive(active);
+            if (res.data.length > 0) {
+                const active = selectedDrive ? res.data.find(d => d.id === selectedDrive.id) : (res.data.find(d => d.is_active) || res.data[0]);
+                if (active) {
+                    setSelectedDrive(active);
+                    loadApplications(active.id);
+                }
             }
         } catch (err) {
             console.error(err);
         } finally {
             setLoading(false);
         }
+    };
+
+    const loadApplications = async (driveId) => {
+        if (!driveId) return;
+        try {
+            const res = await api.get(`/recruitment/applications/?drive_id=${driveId}`);
+            setApplications(res.data);
+        } catch (err) { console.error(err); }
     };
 
     const handleCreateDrive = async (e) => {
@@ -83,8 +97,7 @@ export default function AdminRecruitmentPage() {
                 drive: selectedDrive.id
             });
             setTimelineForm({ title: "", date: "", is_completed: false });
-            // Refresh just the selected drive or reload all
-            loadDrives(); // simple reload to refresh nested data
+            loadDrives();
         } catch (err) { alert("Failed to add event"); }
     };
 
@@ -105,7 +118,7 @@ export default function AdminRecruitmentPage() {
     // Assignment Actions
     const handleAddAssignment = async (e) => {
         e.preventDefault();
-        if (!selectedDrive || !assignmentFile) return;
+        if (!selectedDrive || (!assignmentFile && !assignmentForm.external_link)) return;
 
         try {
             const fd = new FormData();
@@ -113,10 +126,11 @@ export default function AdminRecruitmentPage() {
             fd.append("sig", assignmentForm.sig);
             fd.append("title", assignmentForm.title);
             fd.append("description", assignmentForm.description);
-            fd.append("file", assignmentFile);
+            if (assignmentFile) fd.append("file", assignmentFile);
+            if (assignmentForm.external_link) fd.append("external_link", assignmentForm.external_link);
 
             await api.post("/recruitment/assignments/", fd);
-            setAssignmentForm({ title: "", description: "", sig: "" });
+            setAssignmentForm({ title: "", description: "", sig: "", external_link: "" });
             setAssignmentFile(null);
             loadDrives();
         } catch (err) { alert("Failed to add assignment"); }
@@ -128,6 +142,24 @@ export default function AdminRecruitmentPage() {
             await api.delete(`/recruitment/assignments/${id}/`);
             loadDrives();
         } catch (err) { alert("Failed"); }
+    };
+
+    // Application Actions
+    const handleUpdateScore = async (appId, field, value) => {
+        try {
+            await api.patch(`/recruitment/applications/${appId}/`, { [field]: value });
+            loadApplications(selectedDrive.id);
+        } catch (err) { console.error(err); }
+    };
+
+    const handleScheduleInterview = async (appId, time) => {
+        try {
+            await api.patch(`/recruitment/applications/${appId}/`, {
+                interview_time: time,
+                status: 'INTERVIEW_SCHEDULED'
+            });
+            loadApplications(selectedDrive.id);
+        } catch (err) { alert("Failed to schedule"); }
     };
 
     // Update link
@@ -163,7 +195,7 @@ export default function AdminRecruitmentPage() {
                     {drives.map(drive => (
                         <div
                             key={drive.id}
-                            onClick={() => setSelectedDrive(drives.find(d => d.id === drive.id))}
+                            onClick={() => { setSelectedDrive(drive); loadApplications(drive.id); }}
                             className={`p-4 rounded-xl border cursor-pointer transition-all ${selectedDrive?.id === drive.id
                                 ? "bg-orange-500/10 border-orange-500/50"
                                 : "bg-white/5 border-white/10 hover:bg-white/10"
@@ -214,137 +246,177 @@ export default function AdminRecruitmentPage() {
                             </div>
                         </div>
 
-                        {/* Timeline Section */}
-                        <div className="bg-[#0b0c15] p-6 rounded-2xl border border-white/5">
-                            <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
-                                <span className="w-1.5 h-6 bg-orange-500 rounded-lg"></span> Timeline Roadmap
-                            </h3>
+                        {/* Navigation Tabs */}
+                        <div className="flex border-b border-white/5 gap-8">
+                            <button
+                                onClick={() => setActiveTab("overview")}
+                                className={`pb-4 text-sm font-bold uppercase tracking-widest transition-colors ${activeTab === 'overview' ? 'text-orange-400 border-b-2 border-orange-400' : 'text-gray-500 hover:text-white'}`}
+                            >
+                                Setup & Tasks
+                            </button>
+                            <button
+                                onClick={() => setActiveTab("applications")}
+                                className={`pb-4 text-sm font-bold uppercase tracking-widest transition-colors ${activeTab === 'applications' ? 'text-orange-400 border-b-2 border-orange-400' : 'text-gray-500 hover:text-white'}`}
+                            >
+                                Candidates & Tracking ({applications.length})
+                            </button>
+                        </div>
 
-                            <div className="space-y-6 relative ml-2 border-l border-white/10 pl-6 pb-4">
-                                {selectedDrive.timeline && selectedDrive.timeline.length > 0 ? selectedDrive.timeline.map((item, index) => (
-                                    <div key={item.id} className="relative group">
-                                        {/* Dot */}
-                                        <div className={`absolute -left-[31px] top-1.5 w-3 h-3 rounded-full border-2 ${item.is_completed ? 'bg-green-500 border-green-500' : 'bg-black border-gray-600'}`} />
+                        {activeTab === 'overview' ? (
+                            <div className="space-y-6">
+                                {/* Timeline Section */}
+                                <div className="bg-[#0b0c15] p-6 rounded-2xl border border-white/5">
+                                    <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
+                                        <span className="w-1.5 h-6 bg-orange-500 rounded-lg"></span> Timeline Roadmap
+                                    </h3>
 
-                                        <div className="flex justify-between items-start bg-white/5 p-4 rounded-xl border border-white/5 hover:border-white/10 transition">
-                                            <div>
-                                                <h4 className={`font-bold ${item.is_completed ? 'text-gray-500 line-through' : 'text-white'}`}>{item.title}</h4>
-                                                <div className="text-sm mt-1 flex items-center gap-2">
-                                                    {item.original_date && (
-                                                        <span className="text-red-400/60 line-through text-xs">
-                                                            {formatDateIST(item.original_date)}
-                                                        </span>
-                                                    )}
-                                                    <span className={`${item.original_date ? 'text-orange-400 font-bold' : 'text-gray-400'}`}>
-                                                        {formatDateIST(item.date)}
-                                                    </span>
+                                    <div className="space-y-6 relative ml-2 border-l border-white/10 pl-6 pb-4">
+                                        {selectedDrive.timeline && selectedDrive.timeline.length > 0 ? selectedDrive.timeline.map((item, index) => (
+                                            <div key={item.id} className="relative group">
+                                                <div className={`absolute -left-[31px] top-1.5 w-3 h-3 rounded-full border-2 ${item.is_completed ? 'bg-green-500 border-green-500' : 'bg-black border-gray-600'}`} />
+                                                <div className="flex justify-between items-start bg-white/5 p-4 rounded-xl border border-white/5 hover:border-white/10 transition">
+                                                    <div>
+                                                        <h4 className={`font-bold ${item.is_completed ? 'text-gray-500 line-through' : 'text-white'}`}>{item.title}</h4>
+                                                        <div className="text-sm mt-1 flex items-center gap-2">
+                                                            {item.original_date && <span className="text-red-400/60 line-through text-xs">{formatDateIST(item.original_date)}</span>}
+                                                            <span className={`${item.original_date ? 'text-orange-400 font-bold' : 'text-gray-400'}`}>{formatDateIST(item.date)}</span>
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex items-center gap-2">
+                                                        <input type="checkbox" checked={item.is_completed} onChange={() => handleToggleComplete(item)} className="w-5 h-5 accent-green-500 rounded cursor-pointer" />
+                                                        <button onClick={() => handleDeleteEvent(item.id)} className="text-gray-600 hover:text-red-400 p-1"><Trash size={14} /></button>
+                                                    </div>
                                                 </div>
                                             </div>
-                                            <div className="flex items-center gap-2">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={item.is_completed}
-                                                    onChange={() => handleToggleComplete(item)}
-                                                    className="w-5 h-5 accent-green-500 rounded cursor-pointer"
-                                                />
-                                                <button onClick={() => handleDeleteEvent(item.id)} className="text-gray-600 hover:text-red-400 p-1"><Trash size={14} /></button>
+                                        )) : <p className="text-gray-500 italic">No timeline events set.</p>}
+                                    </div>
+
+                                    <form onSubmit={handleAddTimeline} className="mt-6 pt-6 border-t border-white/5 flex flex-col sm:flex-row gap-3">
+                                        <input placeholder="Event Title" className="flex-[2] bg-white/5 rounded-lg px-4 py-2 border border-white/10 focus:border-orange-500 outline-none" required value={timelineForm.title} onChange={e => setTimelineForm({ ...timelineForm, title: e.target.value })} />
+                                        <input type="datetime-local" className="flex-1 bg-white/5 rounded-lg px-4 py-2 border border-white/10 focus:border-orange-500 outline-none text-white/70" required value={timelineForm.date} onChange={e => setTimelineForm({ ...timelineForm, date: e.target.value })} />
+                                        <button type="submit" className="bg-white/10 hover:bg-white/20 px-4 py-2 rounded-lg font-bold text-sm transition">Add Event</button>
+                                    </form>
+                                </div>
+
+                                {/* Assignments Section */}
+                                <div className="bg-[#0b0c15] p-6 rounded-2xl border border-white/5">
+                                    <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
+                                        <span className="w-1.5 h-6 bg-blue-500 rounded-lg"></span> SIG Assignments (Tasks)
+                                    </h3>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        {selectedDrive.assignments && selectedDrive.assignments.map(asn => (
+                                            <div key={asn.id} className="p-4 bg-white/5 border border-white/5 rounded-xl flex justify-between items-start group">
+                                                <div className="flex gap-3">
+                                                    <div className="p-2 bg-blue-500/10 text-blue-400 rounded-lg h-fit"><FileText size={18} /></div>
+                                                    <div>
+                                                        <h4 className="font-bold text-white leading-tight">{asn.title}</h4>
+                                                        <p className="text-[10px] text-blue-400 font-black uppercase mt-1 tracking-widest">{asn.sig_name}</p>
+                                                    </div>
+                                                </div>
+                                                <button onClick={() => handleDeleteAssignment(asn.id)} className="text-gray-600 hover:text-red-400 p-1 opacity-0 group-hover:opacity-100 transition"><Trash size={14} /></button>
                                             </div>
+                                        ))}
+                                    </div>
+
+                                    <form onSubmit={handleAddAssignment} className="mt-6 pt-6 border-t border-white/5 space-y-4">
+                                        <div className="grid sm:grid-cols-2 gap-4">
+                                            <input placeholder="Task Title" className="bg-white/5 rounded-lg px-4 py-2 border border-white/10 focus:border-blue-500 outline-none text-sm" required value={assignmentForm.title} onChange={e => setAssignmentForm({ ...assignmentForm, title: e.target.value })} />
+                                            <select className="bg-white/5 rounded-lg px-4 py-2 border border-white/10 focus:border-blue-500 outline-none text-sm text-gray-400" required value={assignmentForm.sig} onChange={e => setAssignmentForm({ ...assignmentForm, sig: e.target.value })} >
+                                                <option value="">Select SIG</option>
+                                                {sigs.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                                            </select>
+                                        </div>
+                                        <textarea placeholder="Task description..." className="w-full bg-white/5 rounded-lg px-4 py-2 border border-white/10 focus:border-blue-500 outline-none text-sm h-20" value={assignmentForm.description} onChange={e => setAssignmentForm({ ...assignmentForm, description: e.target.value })} />
+                                        <div className="grid sm:grid-cols-2 gap-4">
+                                            <label className="flex items-center justify-center gap-2 bg-white/5 border border-dashed border-white/10 rounded-lg p-3 cursor-pointer hover:border-blue-500/50 transition">
+                                                <Upload size={16} className="text-gray-500" />
+                                                <span className="text-xs text-gray-400">{assignmentFile ? assignmentFile.name : "Choose File"}</span>
+                                                <input type="file" className="hidden" onChange={e => setAssignmentFile(e.target.files[0])} />
+                                            </label>
+                                            <input placeholder="OR External Link (Drive/Doc)" className="bg-white/5 rounded-lg px-4 py-2 border border-white/10 focus:border-blue-500 outline-none text-sm" value={assignmentForm.external_link} onChange={e => setAssignmentForm({ ...assignmentForm, external_link: e.target.value })} />
+                                        </div>
+                                        <button type="submit" className="w-full bg-blue-600 hover:bg-blue-500 py-3 rounded-lg font-bold text-sm text-black transition">Add Task</button>
+                                    </form>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="space-y-6">
+                                {/* Leaderboard View */}
+                                <div className="bg-[#0b0c15] p-6 rounded-2xl border border-white/5">
+                                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+                                        <h3 className="text-xl font-bold flex items-center gap-3">
+                                            <Award className="text-orange-400" /> Recruitment Leaderboard
+                                        </h3>
+                                        <div className="text-xs text-gray-400 p-2 bg-white/5 rounded-lg border border-white/5">
+                                            Total Score = OA + Assignment + Interview
                                         </div>
                                     </div>
-                                )) : (
-                                    <p className="text-gray-500 italic">No timeline events yet.</p>
-                                )}
-                            </div>
 
-                            {/* Add Event Form */}
-                            <form onSubmit={handleAddTimeline} className="mt-6 pt-6 border-t border-white/5 flex flex-col sm:flex-row gap-3">
-                                <input
-                                    placeholder="Event Title (e.g. Interview)"
-                                    className="flex-[2] bg-white/5 rounded-lg px-4 py-2 border border-white/10 focus:border-orange-500 outline-none"
-                                    required
-                                    value={timelineForm.title}
-                                    onChange={e => setTimelineForm({ ...timelineForm, title: e.target.value })}
-                                />
-                                <input
-                                    type="datetime-local"
-                                    className="flex-1 bg-white/5 rounded-lg px-4 py-2 border border-white/10 focus:border-orange-500 outline-none text-white/70"
-                                    required
-                                    value={timelineForm.date}
-                                    onChange={e => setTimelineForm({ ...timelineForm, date: e.target.value })}
-                                />
-                                <button type="submit" className="bg-white/10 hover:bg-white/20 px-4 py-2 rounded-lg font-bold text-sm transition">Add Event</button>
-                            </form>
-                        </div>
-
-                        {/* Assignments Section */}
-                        <div className="bg-[#0b0c15] p-6 rounded-2xl border border-white/5">
-                            <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
-                                <span className="w-1.5 h-6 bg-blue-500 rounded-lg"></span> SIG Assignments (Tasks)
-                            </h3>
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                {selectedDrive.assignments && selectedDrive.assignments.map(asn => (
-                                    <div key={asn.id} className="p-4 bg-white/5 border border-white/5 rounded-xl flex justify-between items-start group">
-                                        <div className="flex gap-3">
-                                            <div className="p-2 bg-blue-500/10 text-blue-400 rounded-lg h-fit"><FileText size={18} /></div>
-                                            <div>
-                                                <h4 className="font-bold text-white leading-tight">{asn.title}</h4>
-                                                <p className="text-[10px] text-blue-400 font-black uppercase mt-1 tracking-widest">{asn.sig_name}</p>
-                                            </div>
-                                        </div>
-                                        <button onClick={() => handleDeleteAssignment(asn.id)} className="text-gray-600 hover:text-red-400 p-1 opacity-0 group-hover:opacity-100 transition"><Trash size={14} /></button>
+                                    <div className="overflow-x-auto">
+                                        <table className="w-full text-left border-collapse">
+                                            <thead>
+                                                <tr className="border-b border-white/10">
+                                                    <th className="py-4 px-2 text-[10px] font-black uppercase text-gray-500 tracking-widest">Rank</th>
+                                                    <th className="py-4 px-2 text-[10px] font-black uppercase text-gray-500 tracking-widest">Candidate (ID)</th>
+                                                    <th className="py-4 px-2 text-[10px] font-black uppercase text-gray-500 tracking-widest">SIG</th>
+                                                    <th className="py-4 px-2 text-[10px] font-black uppercase text-gray-500 tracking-widest">OA</th>
+                                                    <th className="py-4 px-2 text-[10px] font-black uppercase text-gray-500 tracking-widest">Assessment</th>
+                                                    <th className="py-4 px-2 text-[10px] font-black uppercase text-gray-500 tracking-widest">Interview</th>
+                                                    <th className="py-4 px-2 text-[10px] font-black uppercase text-gray-500 tracking-widest">Total</th>
+                                                    <th className="py-4 px-2 text-[10px] font-black uppercase text-gray-500 tracking-widest">Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-white/5">
+                                                {[...applications]
+                                                    .sort((a, b) => ((b.oa_score || 0) + (b.assessment_score || 0) + (b.interview_score || 0)) - ((a.oa_score || 0) + (a.assessment_score || 0) + (a.interview_score || 0)))
+                                                    .map((app, i) => (
+                                                        <tr key={app.id} className="group hover:bg-white/[0.02] transition-colors">
+                                                            <td className="py-4 px-2 font-mono text-orange-400 font-bold">#{i + 1}</td>
+                                                            <td className="py-4 px-2">
+                                                                <p className="font-bold text-white text-sm">{app.candidate_name || "New Applicant"}</p>
+                                                                <p className="text-[10px] text-gray-500 font-mono italic">{app.identifier}</p>
+                                                            </td>
+                                                            <td className="py-4 px-2">
+                                                                <span className="px-2 py-0.5 bg-blue-500/10 text-blue-400 text-[10px] font-bold rounded uppercase tracking-tighter">{app.sig_name}</span>
+                                                            </td>
+                                                            <td className="py-4 px-2">
+                                                                <input type="number" className="w-16 bg-white/5 border border-white/10 rounded px-2 py-1 text-xs outline-none focus:border-orange-500" value={app.oa_score || ""} onChange={(e) => handleUpdateScore(app.id, 'oa_score', e.target.value)} placeholder="--" />
+                                                            </td>
+                                                            <td className="py-4 px-2">
+                                                                <input type="number" className="w-16 bg-white/5 border border-white/10 rounded px-2 py-1 text-xs outline-none focus:border-orange-500 font-bold text-orange-400" value={app.assessment_score || ""} onChange={(e) => handleUpdateScore(app.id, 'assessment_score', e.target.value)} placeholder="--" />
+                                                            </td>
+                                                            <td className="py-4 px-2">
+                                                                <input type="number" className="w-16 bg-white/5 border border-white/10 rounded px-2 py-1 text-xs outline-none focus:border-orange-500 text-green-400" value={app.interview_score || ""} onChange={(e) => handleUpdateScore(app.id, 'interview_score', e.target.value)} placeholder="--" />
+                                                            </td>
+                                                            <td className="py-4 px-2 font-black text-sm">{(app.oa_score || 0) + (app.assessment_score || 0) + (app.interview_score || 0)}</td>
+                                                            <td className="py-4 px-2">
+                                                                <div className="flex gap-2">
+                                                                    {app.solution_link && <a href={app.solution_link} target="_blank" rel="noreferrer" className="p-2 bg-white/5 text-blue-400 rounded-lg hover:bg-white/10 border border-white/5"><ExternalLink size={14} /></a>}
+                                                                    {app.assessment_file && <a href={app.assessment_file} target="_blank" rel="noreferrer" className="p-2 bg-white/5 text-orange-400 rounded-lg hover:bg-white/10 border border-white/5"><Download size={14} /></a>}
+                                                                    <div className="relative group/time">
+                                                                        <button className="p-2 bg-white/5 text-gray-400 rounded-lg border border-white/5 hover:text-green-400"><Calendar size={14} /></button>
+                                                                        <div className="absolute right-0 top-full mt-2 hidden group-hover/time:block z-50 bg-[#111] border border-white/10 rounded-xl p-4 shadow-2xl w-64">
+                                                                            <p className="text-[10px] font-black uppercase text-gray-500 mb-2">Schedule Slot</p>
+                                                                            <input type="datetime-local" className="w-full bg-black border border-white/10 rounded px-3 py-2 text-xs text-white" onChange={(e) => handleScheduleInterview(app.id, e.target.value)} defaultValue={app.interview_time?.slice(0, 16)} />
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                    ))}
+                                            </tbody>
+                                        </table>
                                     </div>
-                                ))}
-                                {(!selectedDrive.assignments || selectedDrive.assignments.length === 0) && (
-                                    <p className="col-span-2 text-gray-500 italic text-sm py-4">No assignments uploaded for this cycle.</p>
-                                )}
+                                </div>
                             </div>
-
-                            {/* Add Assignment Form */}
-                            <form onSubmit={handleAddAssignment} className="mt-6 pt-6 border-t border-white/5 space-y-4">
-                                <div className="grid sm:grid-cols-2 gap-4">
-                                    <input
-                                        placeholder="Task Title (e.g. PCB Design Task)"
-                                        className="bg-white/5 rounded-lg px-4 py-2 border border-white/10 focus:border-blue-500 outline-none text-sm"
-                                        required
-                                        value={assignmentForm.title}
-                                        onChange={e => setAssignmentForm({ ...assignmentForm, title: e.target.value })}
-                                    />
-                                    <select
-                                        className="bg-white/5 rounded-lg px-4 py-2 border border-white/10 focus:border-blue-500 outline-none text-sm text-gray-400"
-                                        required
-                                        value={assignmentForm.sig}
-                                        onChange={e => setAssignmentForm({ ...assignmentForm, sig: e.target.value })}
-                                    >
-                                        <option value="">Select SIG</option>
-                                        {sigs.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-                                    </select>
-                                </div>
-                                <textarea
-                                    placeholder="Task instructions/description..."
-                                    className="w-full bg-white/5 rounded-lg px-4 py-2 border border-white/10 focus:border-blue-500 outline-none text-sm h-20"
-                                    value={assignmentForm.description}
-                                    onChange={e => setAssignmentForm({ ...assignmentForm, description: e.target.value })}
-                                />
-                                <div className="flex items-center gap-4">
-                                    <label className="flex-1 flex items-center justify-center gap-2 bg-white/5 border border-dashed border-white/10 rounded-lg p-3 cursor-pointer hover:border-blue-500/50 transition">
-                                        <Upload size={16} className="text-gray-500" />
-                                        <span className="text-xs text-gray-400">{assignmentFile ? assignmentFile.name : "Choose Task File (PDF/ZIP)"}</span>
-                                        <input type="file" className="hidden" onChange={e => setAssignmentFile(e.target.files[0])} />
-                                    </label>
-                                    <button type="submit" className="bg-blue-600 hover:bg-blue-500 px-6 py-3 rounded-lg font-bold text-sm text-black transition">Upload Task</button>
-                                </div>
-                            </form>
-                        </div>
+                        )}
                     </div>
                 ) : (
-                    <div className="lg:col-span-2 flex items-center justify-center p-12 text-gray-500 border border-white/5 rounded-2xl bg-white/5">
-                        Select a cycle to manage
-                    </div>
+                    <div className="lg:col-span-2 flex items-center justify-center p-12 text-gray-500 border border-white/5 rounded-2xl bg-white/5">Select a cycle to manage</div>
                 )}
             </div>
 
-            {/* Create Modal */}
             {showDriveForm && (
                 <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4 backdrop-blur-sm">
                     <div className="glass p-8 rounded-2xl w-full max-w-md border border-orange-500/30 shadow-2xl">
@@ -352,22 +424,7 @@ export default function AdminRecruitmentPage() {
                         <form onSubmit={handleCreateDrive} className="space-y-4">
                             <div>
                                 <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Title</label>
-                                <input
-                                    className="w-full bg-black/40 border border-white/10 rounded-lg p-3 text-white focus:border-orange-500 outline-none"
-                                    placeholder="e.g. Summer 2026 Core"
-                                    required
-                                    value={driveForm.title}
-                                    onChange={e => setDriveForm({ ...driveForm, title: e.target.value })}
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Registration Form Link</label>
-                                <input
-                                    className="w-full bg-black/40 border border-white/10 rounded-lg p-3 text-white focus:border-orange-500 outline-none"
-                                    placeholder="https://..."
-                                    value={driveForm.registration_link}
-                                    onChange={e => setDriveForm({ ...driveForm, registration_link: e.target.value })}
-                                />
+                                <input className="w-full bg-black/40 border border-white/10 rounded-lg p-3 text-white focus:border-orange-500 outline-none" required value={driveForm.title} onChange={e => setDriveForm({ ...driveForm, title: e.target.value })} />
                             </div>
                             <div className="flex justify-end gap-3 pt-4">
                                 <button type="button" onClick={() => setShowDriveForm(false)} className="px-4 py-2 rounded-lg text-gray-400 hover:text-white">Cancel</button>

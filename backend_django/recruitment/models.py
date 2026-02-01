@@ -65,7 +65,11 @@ class RecruitmentApplication(models.Model):
     
     # Assessment
     assessment_file = models.FileField(upload_to='recruitment/assessments/', null=True, blank=True)
+    solution_link = models.URLField(blank=True, help_text="Link to hosted solution (Drive/GitHub)")
     assessment_submitted_at = models.DateTimeField(null=True, blank=True)
+    
+    # Interview
+    interview_time = models.DateTimeField(null=True, blank=True)
     
     # Scores
     oa_score = models.FloatField(null=True, blank=True)
@@ -89,7 +93,8 @@ class RecruitmentAssignment(models.Model):
     sig = models.ForeignKey('users.Sig', on_delete=models.CASCADE, related_name='recruitment_assignments')
     title = models.CharField(max_length=200)
     description = models.TextField(blank=True)
-    file = models.FileField(upload_to='recruitment/assignments/')
+    file = models.FileField(upload_to='recruitment/assignments/', null=True, blank=True)
+    external_link = models.URLField(blank=True, help_text="Link to external assignment doc/folder")
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

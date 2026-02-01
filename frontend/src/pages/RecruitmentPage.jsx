@@ -4,7 +4,7 @@ import api from "../api/axios";
 import { formatDateIST } from "../utils/dateUtils";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
-import { Download, CheckCircle2, Circle, Clock, ChevronRight, FileText, Upload } from "lucide-react";
+import { Download, CheckCircle2, Circle, Clock, ChevronRight, FileText, Upload, ExternalLink } from "lucide-react";
 import { buildMediaUrl } from "../utils/mediaUrl";
 
 export default function RecruitmentPage() {
@@ -16,6 +16,7 @@ export default function RecruitmentPage() {
     const [showUpload, setShowUpload] = useState(false);
     const [identifier, setIdentifier] = useState("");
     const [file, setFile] = useState(null);
+    const [solutionLink, setSolutionLink] = useState("");
     const [submitting, setSubmitting] = useState(false);
     const [message, setMessage] = useState({ text: "", type: "" });
 
@@ -40,13 +41,14 @@ export default function RecruitmentPage() {
 
     const handleUpload = async (e) => {
         e.preventDefault();
-        if (!file || !identifier) return setMessage({ text: "All fields required", type: "error" });
+        if (!identifier || (!file && !solutionLink)) return setMessage({ text: "ID and either File or Link required", type: "error" });
 
         try {
             setSubmitting(true);
             const fd = new FormData();
             fd.append("identifier", identifier);
-            fd.append("assessment_file", file);
+            if (file) fd.append("assessment_file", file);
+            if (solutionLink) fd.append("solution_link", solutionLink);
             fd.append("drive", drive.id);
 
             // We need a custom action in RecruitmentViewSet or a dedicated upload endpoint
@@ -58,6 +60,7 @@ export default function RecruitmentPage() {
             setMessage({ text: "Assessment submitted successfully!", type: "success" });
             setShowUpload(false);
             setFile(null);
+            setSolutionLink("");
             setIdentifier("");
         } catch (err) {
             setMessage({ text: err.response?.data?.error || "Submission failed", type: "error" });
@@ -193,15 +196,29 @@ export default function RecruitmentPage() {
                                 <div>
                                     <div className="flex justify-between items-start mb-6">
                                         <h3 className="text-3xl font-black font-[Orbitron] uppercase text-orange-400">{selectedSig.title}</h3>
-                                        <a
-                                            href={buildMediaUrl(selectedSig.file)}
-                                            download
-                                            target="_blank"
-                                            rel="noreferrer"
-                                            className="p-4 bg-orange-600 hover:bg-orange-500 text-black rounded-2xl transition shadow-lg shadow-orange-600/20"
-                                        >
-                                            <Download size={24} />
-                                        </a>
+                                        <div className="flex gap-2">
+                                            {selectedSig.file && (
+                                                <a
+                                                    href={buildMediaUrl(selectedSig.file)}
+                                                    download
+                                                    target="_blank"
+                                                    rel="noreferrer"
+                                                    className="p-4 bg-orange-600 hover:bg-orange-500 text-black rounded-2xl transition shadow-lg shadow-orange-600/20"
+                                                >
+                                                    <Download size={24} />
+                                                </a>
+                                            )}
+                                            {selectedSig.external_link && (
+                                                <a
+                                                    href={selectedSig.external_link}
+                                                    target="_blank"
+                                                    rel="noreferrer"
+                                                    className="p-4 bg-white/10 hover:bg-white/20 text-white rounded-2xl transition border border-white/10"
+                                                >
+                                                    <ExternalLink size={24} />
+                                                </a>
+                                            )}
+                                        </div>
                                     </div>
                                     <p className="text-gray-400 leading-relaxed mb-8 whitespace-pre-wrap">{selectedSig.description || "No description provided. Please refer to the downloaded file for instructions."}</p>
                                 </div>
@@ -258,17 +275,33 @@ export default function RecruitmentPage() {
 
                             <div>
                                 <label className="block text-[10px] font-bold text-gray-600 uppercase tracking-widest mb-2">Solution File (PDF/ZIP)</label>
-                                <label className="w-full h-32 flex flex-col items-center justify-center bg-black/60 border-2 border-dashed border-white/10 rounded-2xl cursor-pointer hover:border-orange-500/50 transition group">
+                                <label className="w-full h-24 flex flex-col items-center justify-center bg-black/60 border-2 border-dashed border-white/10 rounded-2xl cursor-pointer hover:border-orange-500/50 transition group">
                                     {file ? (
                                         <div className="text-orange-400 font-bold">{file.name}</div>
                                     ) : (
                                         <>
-                                            <Upload className="text-gray-600 group-hover:text-orange-500 mb-2" size={32} />
-                                            <span className="text-gray-500 text-sm">Click or Drag File</span>
+                                            <Upload className="text-gray-600 group-hover:text-orange-500 mb-1" size={24} />
+                                            <span className="text-gray-500 text-xs">Drop File</span>
                                         </>
                                     )}
-                                    <input type="file" className="hidden" onChange={e => setFile(e.target.files[0])} accept=".pdf,.zip,.rar" />
+                                    <input type="file" className="hidden" onChange={e => { setFile(e.target.files[0]); setSolutionLink(""); }} accept=".pdf,.zip,.rar" />
                                 </label>
+                            </div>
+
+                            <div className="relative py-2 flex items-center">
+                                <div className="flex-grow border-t border-white/5"></div>
+                                <span className="flex-shrink mx-4 text-gray-600 text-[10px] font-bold uppercase tracking-widest">OR</span>
+                                <div className="flex-grow border-t border-white/5"></div>
+                            </div>
+
+                            <div>
+                                <label className="block text-[10px] font-bold text-gray-600 uppercase tracking-widest mb-2">Drive / GitHub Link</label>
+                                <input
+                                    className="w-full bg-black/40 border border-white/10 rounded-xl p-4 focus:border-orange-500 outline-none text-sm"
+                                    placeholder="https://drive.google.com/..."
+                                    value={solutionLink}
+                                    onChange={e => { setSolutionLink(e.target.value); setFile(null); }}
+                                />
                             </div>
 
                             <div className="flex gap-4 pt-4">
