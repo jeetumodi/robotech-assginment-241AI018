@@ -438,6 +438,7 @@ function DiscussionsTab({ project, setProject, user, onUpdate, unreadMsgIds, set
     const [msg, setMsg] = useState("");
     const [searchParams, setSearchParams] = useSearchParams();
     const activeThreadId = parseInt(searchParams.get("thread"));
+    const chatContainerRef = useRef(null);
 
     const setActiveThreadId = (tid) => {
         // Clear unread for this thread
@@ -529,6 +530,29 @@ function DiscussionsTab({ project, setProject, user, onUpdate, unreadMsgIds, set
     }
 
     const currentThread = project.threads?.find(t => t.id === activeThreadId);
+
+    // Handle Selective Scrolling
+    useEffect(() => {
+        if (!chatContainerRef.current || !currentThread?.messages) return;
+        const container = chatContainerRef.current;
+
+        // Threshold of 150px to consider user "at bottom"
+        const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 150;
+
+        if (isNearBottom) {
+            // Use setTimeout to ensure DOM has updated with new messages
+            setTimeout(() => {
+                container.scrollTo({ top: container.scrollHeight, behavior: 'smooth' });
+            }, 50);
+        }
+    }, [currentThread?.messages]);
+
+    // Force scroll to bottom when switching threads
+    useEffect(() => {
+        if (chatContainerRef.current) {
+            chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+        }
+    }, [activeThreadId]);
 
     const [typers, setTypers] = useState([]);
     const [isTyping, setIsTyping] = useState(false);
@@ -635,7 +659,7 @@ function DiscussionsTab({ project, setProject, user, onUpdate, unreadMsgIds, set
                             </div>
                         </div>
 
-                        <div className="flex-1 overflow-y-auto p-6 space-y-6 no-scrollbar bg-black/20" ref={r => r && (r.scrollTop = r.scrollHeight)}>
+                        <div className="flex-1 overflow-y-auto p-6 space-y-6 no-scrollbar bg-black/20" ref={chatContainerRef}>
                             {currentThread.messages?.map(m => (
                                 <div key={m.id} className={`flex flex-col ${m.author === user.id ? 'items-end' : 'items-start'} animate-slide-in`}>
                                     <div className="flex items-center gap-2 mb-2">
@@ -675,8 +699,6 @@ function DiscussionsTab({ project, setProject, user, onUpdate, unreadMsgIds, set
                                     <p className="text-[8px] font-black uppercase tracking-[0.4em]">Channel Dark</p>
                                 </div>
                             )}
-                            {/* Dummy element to scroll to */}
-                            <div ref={el => el?.scrollIntoView({ behavior: 'smooth' })} />
                         </div>
 
                         <form onSubmit={handleSendMsg} className="p-6 bg-black/40 border-t border-white/10 flex gap-4">
