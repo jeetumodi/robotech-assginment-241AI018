@@ -5,6 +5,7 @@ import ContactUsPage from "./pages/ContactUsPage";
 
 import TeamPage from "./pages/TeamPage";
 import Events from "./pages/Events"
+import RecruitmentPage from "./pages/RecruitmentPage";
 import SponsorshipPage from "./pages/SponserUsPage"
 
 /* ===== ADMIN AUTH ===== */
@@ -62,6 +63,7 @@ function App() {
       {/* ===== PUBLIC ROUTES ===== */}
       <Route path="/" element={<LandingPage />} />
       <Route path="/events" element={<Events />} />
+      <Route path="/recruitment" element={<RecruitmentPage />} />
       <Route path="/events/:id/gallery" element={<EventGalleryPage />} />
       <Route path="/team" element={<TeamPage />} />
       <Route path="/contactUs" element={<ContactUsPage />} />

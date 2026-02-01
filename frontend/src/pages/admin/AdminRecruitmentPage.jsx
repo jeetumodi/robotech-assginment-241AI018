@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Copy, Plus, Trash, ExternalLink } from "lucide-react";
+import { Copy, Plus, Trash, ExternalLink, FileText, Upload } from "lucide-react";
 import api from "../../api/axios";
 import { formatDateIST } from "../../utils/dateUtils";
 
@@ -15,9 +15,20 @@ export default function AdminRecruitmentPage() {
     // Timeline Form
     const [timelineForm, setTimelineForm] = useState({ title: "", date: "", is_completed: false });
 
+    // Assignment Form
+    const [sigs, setSigs] = useState([]);
+    const [assignmentForm, setAssignmentForm] = useState({ title: "", description: "", sig: "" });
+    const [assignmentFile, setAssignmentFile] = useState(null);
+
     useEffect(() => {
         loadDrives();
+        loadSigs();
     }, []);
+
+    const loadSigs = async () => {
+        const res = await api.get("/sigs/");
+        setSigs(res.data);
+    };
 
     const loadDrives = async () => {
         try {
@@ -87,6 +98,34 @@ export default function AdminRecruitmentPage() {
     const handleDeleteEvent = async (id) => {
         try {
             await api.delete(`/recruitment/timeline/${id}/`);
+            loadDrives();
+        } catch (err) { alert("Failed"); }
+    };
+
+    // Assignment Actions
+    const handleAddAssignment = async (e) => {
+        e.preventDefault();
+        if (!selectedDrive || !assignmentFile) return;
+
+        try {
+            const fd = new FormData();
+            fd.append("drive", selectedDrive.id);
+            fd.append("sig", assignmentForm.sig);
+            fd.append("title", assignmentForm.title);
+            fd.append("description", assignmentForm.description);
+            fd.append("file", assignmentFile);
+
+            await api.post("/recruitment/assignments/", fd);
+            setAssignmentForm({ title: "", description: "", sig: "" });
+            setAssignmentFile(null);
+            loadDrives();
+        } catch (err) { alert("Failed to add assignment"); }
+    };
+
+    const handleDeleteAssignment = async (id) => {
+        if (!confirm("Delete assignment?")) return;
+        try {
+            await api.delete(`/recruitment/assignments/${id}/`);
             loadDrives();
         } catch (err) { alert("Failed"); }
     };
@@ -234,6 +273,67 @@ export default function AdminRecruitmentPage() {
                                     onChange={e => setTimelineForm({ ...timelineForm, date: e.target.value })}
                                 />
                                 <button type="submit" className="bg-white/10 hover:bg-white/20 px-4 py-2 rounded-lg font-bold text-sm transition">Add Event</button>
+                            </form>
+                        </div>
+
+                        {/* Assignments Section */}
+                        <div className="bg-[#0b0c15] p-6 rounded-2xl border border-white/5">
+                            <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
+                                <span className="w-1.5 h-6 bg-blue-500 rounded-lg"></span> SIG Assignments (Tasks)
+                            </h3>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {selectedDrive.assignments && selectedDrive.assignments.map(asn => (
+                                    <div key={asn.id} className="p-4 bg-white/5 border border-white/5 rounded-xl flex justify-between items-start group">
+                                        <div className="flex gap-3">
+                                            <div className="p-2 bg-blue-500/10 text-blue-400 rounded-lg h-fit"><FileText size={18} /></div>
+                                            <div>
+                                                <h4 className="font-bold text-white leading-tight">{asn.title}</h4>
+                                                <p className="text-[10px] text-blue-400 font-black uppercase mt-1 tracking-widest">{asn.sig_name}</p>
+                                            </div>
+                                        </div>
+                                        <button onClick={() => handleDeleteAssignment(asn.id)} className="text-gray-600 hover:text-red-400 p-1 opacity-0 group-hover:opacity-100 transition"><Trash size={14} /></button>
+                                    </div>
+                                ))}
+                                {(!selectedDrive.assignments || selectedDrive.assignments.length === 0) && (
+                                    <p className="col-span-2 text-gray-500 italic text-sm py-4">No assignments uploaded for this cycle.</p>
+                                )}
+                            </div>
+
+                            {/* Add Assignment Form */}
+                            <form onSubmit={handleAddAssignment} className="mt-6 pt-6 border-t border-white/5 space-y-4">
+                                <div className="grid sm:grid-cols-2 gap-4">
+                                    <input
+                                        placeholder="Task Title (e.g. PCB Design Task)"
+                                        className="bg-white/5 rounded-lg px-4 py-2 border border-white/10 focus:border-blue-500 outline-none text-sm"
+                                        required
+                                        value={assignmentForm.title}
+                                        onChange={e => setAssignmentForm({ ...assignmentForm, title: e.target.value })}
+                                    />
+                                    <select
+                                        className="bg-white/5 rounded-lg px-4 py-2 border border-white/10 focus:border-blue-500 outline-none text-sm text-gray-400"
+                                        required
+                                        value={assignmentForm.sig}
+                                        onChange={e => setAssignmentForm({ ...assignmentForm, sig: e.target.value })}
+                                    >
+                                        <option value="">Select SIG</option>
+                                        {sigs.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                                    </select>
+                                </div>
+                                <textarea
+                                    placeholder="Task instructions/description..."
+                                    className="w-full bg-white/5 rounded-lg px-4 py-2 border border-white/10 focus:border-blue-500 outline-none text-sm h-20"
+                                    value={assignmentForm.description}
+                                    onChange={e => setAssignmentForm({ ...assignmentForm, description: e.target.value })}
+                                />
+                                <div className="flex items-center gap-4">
+                                    <label className="flex-1 flex items-center justify-center gap-2 bg-white/5 border border-dashed border-white/10 rounded-lg p-3 cursor-pointer hover:border-blue-500/50 transition">
+                                        <Upload size={16} className="text-gray-500" />
+                                        <span className="text-xs text-gray-400">{assignmentFile ? assignmentFile.name : "Choose Task File (PDF/ZIP)"}</span>
+                                        <input type="file" className="hidden" onChange={e => setAssignmentFile(e.target.files[0])} />
+                                    </label>
+                                    <button type="submit" className="bg-blue-600 hover:bg-blue-500 px-6 py-3 rounded-lg font-bold text-sm text-black transition">Upload Task</button>
+                                </div>
                             </form>
                         </div>
                     </div>

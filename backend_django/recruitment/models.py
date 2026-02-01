@@ -83,3 +83,14 @@ class RecruitmentApplication(models.Model):
 
     def __str__(self):
         return f"{self.identifier} - {self.drive.title}"
+
+class RecruitmentAssignment(models.Model):
+    drive = models.ForeignKey(RecruitmentDrive, on_delete=models.CASCADE, related_name='assignments')
+    sig = models.ForeignKey('users.Sig', on_delete=models.CASCADE, related_name='recruitment_assignments')
+    title = models.CharField(max_length=200)
+    description = models.TextField(blank=True)
+    file = models.FileField(upload_to='recruitment/assignments/')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.sig.name} - {self.title}"

@@ -45,7 +45,7 @@ class GlobalPermission(permissions.BasePermission):
             return True
             
         # Allow specific public actions (like active_public on Recruitment)
-        if getattr(view, 'action', None) == 'active_public':
+        if getattr(view, 'action', None) in ['active_public', 'submit_assessment']:
             return True
 
         if view_name in public_read_views and request.method in permissions.SAFE_METHODS:
@@ -121,6 +121,7 @@ class GlobalPermission(permissions.BasePermission):
             'QuizAttemptViewSet': 'can_manage_forms',
             'RecruitmentDriveViewSet': 'can_manage_team',
             'TimelineEventViewSet': 'can_manage_team',
+            'RecruitmentAssignmentViewSet': 'can_manage_team',
             'OptionViewSet': 'can_manage_forms',
         }
 
