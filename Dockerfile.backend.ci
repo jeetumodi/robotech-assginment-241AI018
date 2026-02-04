@@ -5,13 +5,6 @@ ENV PYTHONUNBUFFERED=1
 
 WORKDIR /app/backend_django
 
-# System deps
-RUN apt-get update && apt-get install -y \
-    build-essential \
-    libpq-dev \
-    curl \
-    && rm -rf /var/lib/apt/lists/*
-
 # ONLY BACKEND CODE
 COPY backend_django/ .
 
