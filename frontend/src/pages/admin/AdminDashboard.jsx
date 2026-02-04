@@ -213,7 +213,8 @@ export default function AdminDashboard() {
   );
 }
 
-function DashboardCard({ title, icon: Icon, onClick, accent, color }) {
+function DashboardCard({ title, icon, onClick, accent, color }) {
+  const Icon = icon;
   return (
     <div
       onClick={onClick}
@@ -243,7 +244,7 @@ function DashboardCard({ title, icon: Icon, onClick, accent, color }) {
   );
 }
 
-function StatCard({ label, value, icon: Icon, color, desc }) {
+function StatCard({ label, value, color }) {
   const themes = {
     cyan: "from-cyan-500/10 to-transparent text-cyan-400 border-cyan-500/20",
     purple: "from-purple-500/10 to-transparent text-purple-400 border-purple-500/20",
@@ -265,16 +266,15 @@ function StatCard({ label, value, icon: Icon, color, desc }) {
 
 
 const RecruitmentToggleCard = () => {
-  const [enabled, setEnabled] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const stored = typeof window !== 'undefined' ? localStorage.getItem("recruitment_open") === "true" : false;
+  const [enabled, setEnabled] = useState(stored);
+  const [loading, setLoading] = useState(false);
 
   // Initial fetch
   useEffect(() => {
     // Mock fetch or real API here if available. 
-    // For now using localStorage to persist state for demo
-    const stored = localStorage.getItem("recruitment_open");
-    setEnabled(stored === "true");
-    setLoading(false);
+    // State is already initialized from localStorage
+    // No setState needed - loading should start false
   }, []);
 
   const toggle = async () => {

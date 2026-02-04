@@ -30,7 +30,7 @@ export default function AdminFormResponses() {
             ]);
             setForm(fRes.data);
             setResponses(rRes.data);
-        } catch (err) {
+        } catch (_) {
             navigate("/portal/forms");
         } finally {
             setLoading(false);
@@ -74,7 +74,7 @@ export default function AdminFormResponses() {
         try {
             await api.delete(`/form-responses/${resId}/`);
             fetchData();
-        } catch (err) { alert("Purge failed."); }
+        } catch (_) { alert("Purge failed."); }
     };
 
     const handleExport = async () => {

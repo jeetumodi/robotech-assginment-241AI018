@@ -11,7 +11,6 @@ export default function AdminUsersPage() {
     const [fields, setFields] = useState([]);
     const [positions, setPositions] = useState([]); // NEW
 
-    const [loading, setLoading] = useState(true);
     const [formOpen, setFormOpen] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
     const [editUserId, setEditUserId] = useState(null);
@@ -26,6 +25,7 @@ export default function AdminUsersPage() {
 
     const [image, setImage] = useState(null);
     const [saving, setSaving] = useState(false);
+    const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
     const [deleteId, setDeleteId] = useState(null);
 
@@ -74,13 +74,11 @@ export default function AdminUsersPage() {
             team_name: user.profile?.team_name || "",
             year: user.profile?.year || "",
             branch: user.profile?.branch || "",
-            branch: user.profile?.branch || "",
             // sig: user.profile?.sig || "", // Legacy
             // Ensure sigs is array of IDs for the form state
             sigs: user.profile?.sigs
                 ? user.profile.sigs.map(s => (typeof s === 'object' ? s.id : s))
                 : [],
-            is_active: user.is_active,
             is_active: user.is_active,
             is_public: user.profile?.is_public !== false,
             is_alumni: user.profile?.is_alumni || false,

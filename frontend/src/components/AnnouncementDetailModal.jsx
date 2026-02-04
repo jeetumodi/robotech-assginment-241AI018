@@ -5,6 +5,9 @@ export default function AnnouncementDetailModal({
   loading,
   onClose
 }) {
+  // ===== SWIPE LOGIC (must be before early returns) =====
+  const startY = useRef(0);
+
   // ===== GUARDS =====
   if (loading) {
     return (
@@ -15,9 +18,6 @@ export default function AnnouncementDetailModal({
   }
 
   if (!announcement) return null;
-
-  // ===== SWIPE LOGIC =====
-  const startY = useRef(0);
 
   function handleTouchStart(e) {
     startY.current = e.touches[0].clientY;

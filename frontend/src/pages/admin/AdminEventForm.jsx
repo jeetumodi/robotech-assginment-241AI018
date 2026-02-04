@@ -61,11 +61,6 @@ export default function AdminEventForm() {
   };
 
   /* ================= LOAD EVENT (EDIT) ================= */
-  useEffect(() => {
-    loadSigs();
-    if (isEdit) loadEvent();
-  }, [id]);
-
   async function loadSigs() {
     try {
       const res = await api.get("/sigs/");
@@ -118,6 +113,12 @@ export default function AdminEventForm() {
       );
     }
   }
+
+  useEffect(() => {
+    loadSigs();
+    if (isEdit) loadEvent();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id]);
 
   /* ================= FORM HELPERS ================= */
   function updateField(e) {

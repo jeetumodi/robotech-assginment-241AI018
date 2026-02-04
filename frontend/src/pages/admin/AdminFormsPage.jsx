@@ -34,7 +34,7 @@ export default function AdminFormsPage() {
             setNewForm({ title: "", description: "" });
             // Navigate to form builder for the new form
             navigate(`/portal/forms/${res.data.id}`);
-        } catch (err) {
+        } catch (_) {
             alert("Failed to create form");
         }
     };
@@ -44,7 +44,7 @@ export default function AdminFormsPage() {
         try {
             await api.delete(`/forms/${id}/`);
             setForms(forms.filter(f => f.id !== id));
-        } catch (err) {
+        } catch (_) {
             alert("Failed to delete form");
         }
     };

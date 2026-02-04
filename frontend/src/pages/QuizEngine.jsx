@@ -31,7 +31,7 @@ export default function QuizEngine() {
         // 2. Fullscreen Enforcement
         const enterFS = () => {
             if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen().catch(err => {
+                document.documentElement.requestFullscreen().catch(_ => {
                     console.warn("Fullscreen deferred: Awaiting user pulse.");
                 });
             }
@@ -101,7 +101,7 @@ export default function QuizEngine() {
                 setTimeLeft(attempt.time_left);
                 setResponses(attempt.responses || {});
                 setLoading(false);
-            } catch (err) { navigate("/quizzes"); }
+            } catch (_) { navigate("/quizzes"); }
         };
         init();
     }, [id]);
@@ -142,7 +142,7 @@ export default function QuizEngine() {
         try {
             await api.post(`/quizzes/${id}/submit_quiz/`, { email: guestEmail });
             navigate("/quizzes/success");
-        } catch (err) {
+        } catch (_) {
             alert("Transmission failure.");
         } finally {
             setLoading(false);

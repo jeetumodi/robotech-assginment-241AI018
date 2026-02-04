@@ -284,7 +284,7 @@ function ProjectManager({ project, users, onClose, onUpdate }) {
       isNew ? await api.post("/projects/", payload) : await api.patch(`/projects/${project.id}/`, payload);
       onUpdate();
       if (isNew) onClose();
-    } catch (err) { alert("Failed"); } finally { setSaving(false); }
+    } catch (_) { alert("Failed"); } finally { setSaving(false); }
   };
 
   const handleAddTask = async () => {
@@ -296,7 +296,7 @@ function ProjectManager({ project, users, onClose, onUpdate }) {
       });
       setNewTaskTitle(""); setNewTaskDeadline(""); setNewTaskReq("");
       onUpdate();
-    } catch (err) { alert("Failed to add task"); }
+    } catch (_) { alert("Failed to add task"); }
   };
 
   const handleAddComment = async (taskId, content) => {

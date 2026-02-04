@@ -17,7 +17,7 @@ export default function QuizEnrollment() {
         try {
             const res = await api.get(`/quizzes/${id}/`);
             setQuiz(res.data);
-        } catch (err) { navigate("/quizzes"); }
+        } catch (_) { navigate("/quizzes"); }
         finally { setLoading(false); }
     };
 
@@ -26,7 +26,7 @@ export default function QuizEnrollment() {
 
         // Trigger fullscreen early (must be in user interaction)
         if (quiz?.require_fullscreen) {
-            document.documentElement.requestFullscreen().catch(err => {
+            document.documentElement.requestFullscreen().catch(_ => {
                 console.warn("Fullscreen permission denied or blocked.");
             });
         }

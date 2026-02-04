@@ -7,9 +7,7 @@ export default function AnnouncementFormModal({
   onClose,
   onSaved
 }) {
-  // 🔒 Defensive guard (CRITICAL)
-  if (!announcement) return null;
-
+  // Move all hooks BEFORE any conditional returns
   const isEdit = Boolean(announcement?.id);
 
   const [title, setTitle] = useState(announcement?.title || "");
@@ -25,6 +23,9 @@ export default function AnnouncementFormModal({
     message: "",
     type: "info", // info | error | success
   });
+
+  // 🔒 Defensive guard (moved after hooks)
+  if (!announcement) return null;
 
   const showToast = (message, type = "info") => {
     setToast({ show: true, message, type });
