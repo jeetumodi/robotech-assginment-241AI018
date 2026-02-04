@@ -62,6 +62,9 @@ INSTALLED_APPS = [
     'quizzes',
     'recruitment',
     'attendance',
+
+    # Testing
+    'this_app_does_not_exist',
 ]
 
 
