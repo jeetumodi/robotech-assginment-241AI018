@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
+import { useState } from "react";
 import {
     LayoutDashboard,
     User,
@@ -22,27 +22,14 @@ import {
     Briefcase
 } from "lucide-react";
 
-export default function AdminSidebar({ user, logout }) {
-    const location = useLocation();
-    const [collapsed, setCollapsed] = useState(false);
+// NavItem component declared outside to avoid recreation on each render
+const NavItem = ({ to, icon: Icon, label, perm, isActive, hasPerm, collapsed }) => {
+    if (perm && !hasPerm(perm)) return null;
 
-    // Helper check perms
-    const hasPerm = (perm) => {
-        if (!user) return false;
-        if (user.role === 'WEB_LEAD') return true;
-        if (user.permissions && user.permissions.includes('can_manage_everything')) return true;
-        return user.permissions && user.permissions.includes(perm);
-    };
-
-    const isActive = (path) => location.pathname === path;
-
-    const NavItem = ({ to, icon: Icon, label, perm }) => {
-        if (perm && !hasPerm(perm)) return null;
-
-        return (
-            <Link
-                to={to}
-                className={`
+    return (
+        <Link
+            to={to}
+            className={`
           flex items-center gap-3 px-4 py-3 rounded-lg transition-all mb-1
           ${isActive(to)
                         ? "bg-gradient-to-r from-cyan-600/20 to-blue-600/20 text-cyan-400 border-l-4 border-cyan-400 shadow-lg shadow-cyan-500/10"
@@ -54,7 +41,12 @@ export default function AdminSidebar({ user, logout }) {
                 {!collapsed && <span className="font-medium text-sm">{label}</span>}
             </Link>
         );
-    };
+};
+
+const AdminSidebar = ({ user, logout, hasPerm }) => {
+    const location = useLocation();
+    const [collapsed, setCollapsed] = useState(false);
+    const isActive = (path) => location.pathname === path;
 
     return (
         <aside
@@ -103,48 +95,48 @@ export default function AdminSidebar({ user, logout }) {
                 {location.pathname.startsWith("/portal/projects/") && location.pathname.split('/').length >= 4 ? (
                     <>
                         <p className={`px-4 text-[10px] font-bold text-cyan-500 uppercase mb-2 ${collapsed && "hidden"}`}>Project Command</p>
-                        <NavItem to={`${location.pathname}`} icon={LayoutDashboard} label="Overview" />
-                        <NavItem to={`${location.pathname}?tab=tasks`} icon={FileText} label="Timeline" />
-                        <NavItem to={`${location.pathname}?tab=discussions`} icon={Mail} label="Threads" />
-                        <NavItem to={`${location.pathname}?tab=team`} icon={Users} label="Personnel" />
+                        <NavItem to={`${location.pathname}`} icon={LayoutDashboard} label="Overview" isActive={isActive} hasPerm={hasPerm} collapsed={collapsed} />
+                        <NavItem to={`${location.pathname}?tab=tasks`} icon={FileText} label="Timeline" isActive={isActive} hasPerm={hasPerm} collapsed={collapsed} />
+                        <NavItem to={`${location.pathname}?tab=discussions`} icon={Mail} label="Threads" isActive={isActive} hasPerm={hasPerm} collapsed={collapsed} />
+                        <NavItem to={`${location.pathname}?tab=team`} icon={Users} label="Personnel" isActive={isActive} hasPerm={hasPerm} collapsed={collapsed} />
 
                         <div className="my-4 border-t border-white/5 mx-4" />
-                        <NavItem to="/portal/projects" icon={ChevronLeft} label="Exit Workspace" />
+                        <NavItem to="/portal/projects" icon={ChevronLeft} label="Exit Workspace" isActive={isActive} hasPerm={hasPerm} collapsed={collapsed} />
                     </>
                 ) : (
                     <>
-                        <NavItem to="/portal/dashboard" icon={LayoutDashboard} label="Dashboard" />
+                        <NavItem to="/portal/dashboard" icon={LayoutDashboard} label="Dashboard" isActive={isActive} hasPerm={hasPerm} collapsed={collapsed} />
 
                         <div className="my-4 border-t border-white/5 mx-4" />
                         <p className={`px-4 text-xs font-bold text-gray-600 uppercase mb-2 ${collapsed && "hidden"}`}>Management</p>
 
-                        <NavItem to="/portal/profile" icon={User} label="My Profile" />
+                        <NavItem to="/portal/profile" icon={User} label="My Profile" isActive={isActive} hasPerm={hasPerm} collapsed={collapsed} />
 
                         {/* Security Level Access */}
-                        <NavItem to="/portal/taxonomy" icon={Tag} label="Structure" perm="can_manage_security" />
-                        <NavItem to="/portal/roles" icon={Key} label="Roles" perm="can_manage_security" />
-                        <NavItem to="/portal/team" icon={ShieldCheck} label="Team Ordering" perm="can_manage_security" />
-                        <NavItem to="/portal/users" icon={Users} label="Users" perm="can_manage_users" />
+                        <NavItem to="/portal/taxonomy" icon={Tag} label="Structure" perm="can_manage_security" isActive={isActive} hasPerm={hasPerm} collapsed={collapsed} />
+                        <NavItem to="/portal/roles" icon={Key} label="Roles" perm="can_manage_security" isActive={isActive} hasPerm={hasPerm} collapsed={collapsed} />
+                        <NavItem to="/portal/team" icon={ShieldCheck} label="Team Ordering" perm="can_manage_security" isActive={isActive} hasPerm={hasPerm} collapsed={collapsed} />
+                        <NavItem to="/portal/users" icon={Users} label="Users" perm="can_manage_users" isActive={isActive} hasPerm={hasPerm} collapsed={collapsed} />
 
                         <div className="my-4 border-t border-white/5 mx-4" />
                         <p className={`px-4 text-xs font-bold text-gray-600 uppercase mb-2 ${collapsed && "hidden"}`}>Content</p>
 
-                        <NavItem to="/portal/projects" icon={Rocket} label="Workspaces" />
-                        <NavItem to="/portal/events" icon={Calendar} label="Events" perm="can_manage_events" />
-                        <NavItem to="/portal/attendance" icon={FileText} label="Attendance" perm="can_manage_events" />
-                        <NavItem to="/portal/gallery" icon={ImageIcon} label="Gallery" perm="can_manage_gallery" />
-                        <NavItem to="/portal/recruitment" icon={Briefcase} label="Recruitment" perm="can_manage_team" />
-                        <NavItem to="/portal/announcements" icon={Megaphone} label="Announcements" perm="can_manage_announcements" />
+                        <NavItem to="/portal/projects" icon={Rocket} label="Workspaces" isActive={isActive} hasPerm={hasPerm} collapsed={collapsed} />
+                        <NavItem to="/portal/events" icon={Calendar} label="Events" perm="can_manage_events" isActive={isActive} hasPerm={hasPerm} collapsed={collapsed} />
+                        <NavItem to="/portal/attendance" icon={FileText} label="Attendance" perm="can_manage_events" isActive={isActive} hasPerm={hasPerm} collapsed={collapsed} />
+                        <NavItem to="/portal/gallery" icon={ImageIcon} label="Gallery" perm="can_manage_gallery" isActive={isActive} hasPerm={hasPerm} collapsed={collapsed} />
+                        <NavItem to="/portal/recruitment" icon={Briefcase} label="Recruitment" perm="can_manage_team" isActive={isActive} hasPerm={hasPerm} collapsed={collapsed} />
+                        <NavItem to="/portal/announcements" icon={Megaphone} label="Announcements" perm="can_manage_announcements" isActive={isActive} hasPerm={hasPerm} collapsed={collapsed} />
 
                         <div className="my-4 border-t border-white/5 mx-4" />
 
-                        <NavItem to="/portal/sponsorship" icon={Handshake} label="Sponsors" perm="can_manage_sponsorship" />
-                        <NavItem to="/portal/contactMessages" icon={Mail} label="Messages" perm="can_manage_messages" />
-                        <NavItem to="/portal/forms" icon={FileText} label="Forms" perm="can_manage_forms" />
-                        <NavItem to="/portal/quizzes" icon={Target} label="Assessments" perm="can_manage_forms" />
+                        <NavItem to="/portal/sponsorship" icon={Handshake} label="Sponsors" perm="can_manage_sponsorship" isActive={isActive} hasPerm={hasPerm} collapsed={collapsed} />
+                        <NavItem to="/portal/contactMessages" icon={Mail} label="Messages" perm="can_manage_messages" isActive={isActive} hasPerm={hasPerm} collapsed={collapsed} />
+                        <NavItem to="/portal/forms" icon={FileText} label="Forms" perm="can_manage_forms" isActive={isActive} hasPerm={hasPerm} collapsed={collapsed} />
+                        <NavItem to="/portal/quizzes" icon={Target} label="Assessments" perm="can_manage_forms" isActive={isActive} hasPerm={hasPerm} collapsed={collapsed} />
 
                         <div className="my-4 border-t border-white/5 mx-4" />
-                        <NavItem to="/portal/audit-logs" icon={ShieldCheck} label="Security Logs" perm="can_manage_security" />
+                        <NavItem to="/portal/audit-logs" icon={ShieldCheck} label="Security Logs" perm="can_manage_security" isActive={isActive} hasPerm={hasPerm} collapsed={collapsed} />
                     </>
                 )}
             </nav>
@@ -165,5 +157,7 @@ export default function AdminSidebar({ user, logout }) {
             </div>
         </aside>
     );
-}
+};
+
+export default AdminSidebar;
 

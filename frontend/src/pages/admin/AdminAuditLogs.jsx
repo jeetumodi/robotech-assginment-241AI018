@@ -32,24 +32,6 @@ export default function AdminAuditLogs() {
     }
   };
 
-  const handleDeleteLogs = async () => {
-    if (!deleteDays) return;
-    try {
-      const res = await api.post("/audit-logs/delete_old_logs/", { days: deleteDays });
-      alert(`Deleted ${res.data.deleted_count} logs.`);
-      setShowDeleteConfirm(false);
-      setDeleteDays("");
-      fetchLogs();
-    } catch (err) {
-      console.error("Delete failed", err);
-      alert("Failed to delete logs.");
-    }
-  };
-
-  useEffect(() => {
-    fetchLogs();
-  }, [page, eventType]);
-
   const fetchLogs = async () => {
     try {
       const res = await api.get("/audit-logs/", {
@@ -83,6 +65,25 @@ export default function AdminAuditLogs() {
       console.error("Failed to load logs", err);
     }
   };
+
+  const handleDeleteLogs = async () => {
+    if (!deleteDays) return;
+    try {
+      const res = await api.post("/audit-logs/delete_old_logs/", { days: deleteDays });
+      alert(`Deleted ${res.data.deleted_count} logs.`);
+      setShowDeleteConfirm(false);
+      setDeleteDays("");
+      fetchLogs();
+    } catch (err) {
+      console.error("Delete failed", err);
+      alert("Failed to delete logs.");
+    }
+  };
+
+  useEffect(() => {
+    fetchLogs();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page, eventType]);
 
   const totalPages = Math.ceil(total / limit);
 

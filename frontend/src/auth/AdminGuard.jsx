@@ -3,12 +3,15 @@ import { useEffect, useState } from "react";
 import api from "../api/axios";
 
 export default function AdminGuard({ children }) {
-  const [allowed, setAllowed] = useState(null);
+  const [allowed, setAllowed] = useState(() => {
+    // Initial check for token
+    return localStorage.getItem("accessToken") ? null : false;
+  });
 
   useEffect(() => {
-    // If no token, fail immediately
-    if (!localStorage.getItem("accessToken")) {
-      setAllowed(false);
+    // If no token, already handled in state initialization
+    const token = localStorage.getItem("accessToken");
+    if (!token) {
       return;
     }
 
@@ -23,6 +26,7 @@ export default function AdminGuard({ children }) {
       });
   }, []);
 
-  if (allowed === null) return <div className="p-10 text-center text-white">Loading...</div>; // Simple loading state
+  if (allowed === null)
+    return <div className="p-10 text-center text-white">Loading...</div>; // Simple loading state
   return allowed ? children : <Navigate to="/403" />;
 }

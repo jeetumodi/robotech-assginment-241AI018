@@ -18,15 +18,11 @@ export default function AdminTaxonomyPage() {
     const [positions, setPositions] = useState([]);
     const [roles, setRoles] = useState([]);
 
-    const [tab, setTab] = useState("sigs"); // "sigs" | "fields" | "positions"
-
+    const [tab, setTab] = useState("sigs");
     const [editItem, setEditItem] = useState(null);
     const [isFormOpen, setIsFormOpen] = useState(false);
 
-    useEffect(() => {
-        loadData();
-    }, []);
-
+    // Move loadData BEFORE useEffect
     const loadData = async () => {
         try {
             const [sigRes, fieldRes, posRes, roleRes] = await Promise.all([
@@ -35,17 +31,20 @@ export default function AdminTaxonomyPage() {
                 api.get("/positions/"),
                 api.get("/roles/")
             ]);
-            // Ensure they are sorted by order
             setSigs(sigRes.data.sort((a, b) => a.order - b.order));
             setFields(fieldRes.data.sort((a, b) => a.order - b.order));
             setPositions(posRes.data.sort((a, b) => a.rank - b.rank));
             setRoles(roleRes.data);
-        } catch (err) {
-            console.error(err);
+        } catch {
+            console.error("Failed to load taxonomy data");
         }
     };
 
-    // Generic CRUD
+    useEffect(() => {
+        loadData();
+         
+    }, []);
+
     const handleSave = async (e) => {
         e.preventDefault();
         let endpoint = "/sigs/";
@@ -71,9 +70,9 @@ export default function AdminTaxonomyPage() {
             }
             setIsFormOpen(false);
             loadData();
-        } catch (err) {
+        } catch (error) {
             alert("Failed to save. Ensure unique constraints.");
-            console.error(err);
+            console.error(error);
         }
     };
 
@@ -86,7 +85,7 @@ export default function AdminTaxonomyPage() {
         try {
             await api.delete(`${endpoint}${id}/`);
             loadData();
-        } catch (err) {
+        } catch {
             alert("Failed to delete. It might be in use.");
         }
     };
@@ -151,8 +150,8 @@ export default function AdminTaxonomyPage() {
 
         try {
             await api.post(endpoint, { items: payload });
-        } catch (err) {
-            console.error("Reorder failed", err);
+        } catch (error) {
+            console.error("Reorder failed", error);
             loadData(); // Revert
         }
 

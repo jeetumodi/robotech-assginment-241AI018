@@ -68,7 +68,7 @@ export default function AdminFormBuilder() {
             if (res.data.sections?.length > 0 && !activeSectionId) {
                 setActiveSectionId(res.data.sections[0].id);
             }
-        } catch (err) {
+        } catch (_) {
             navigate("/portal/forms");
         } finally {
             setLoading(false);
@@ -79,7 +79,7 @@ export default function AdminFormBuilder() {
         try {
             await api.patch(`/forms/${id}/`, { theme });
             fetchForm();
-        } catch (err) { alert("Theme update failed"); }
+        } catch (_) { alert("Theme update failed"); }
     };
 
     const handleUpdateMeta = async () => {
@@ -93,7 +93,7 @@ export default function AdminFormBuilder() {
             });
             setIsEditingMeta(false);
             fetchForm();
-        } catch (err) { alert("Failed to update form details"); }
+        } catch (_) { alert("Failed to update form details"); }
     };
 
     const handleAddSection = async () => {
@@ -107,7 +107,7 @@ export default function AdminFormBuilder() {
             setNewSectionTitle("");
             setActiveSectionId(res.data.id);
             fetchForm();
-        } catch (err) { alert("Failed to add section"); }
+        } catch (_) { alert("Failed to add section"); }
     };
 
     const handleAddField = async () => {
@@ -132,14 +132,14 @@ export default function AdminFormBuilder() {
             setIsRequired(false);
             setOptionsList([""]);
             fetchForm();
-        } catch (err) { alert("Failed to add field"); }
+        } catch (_) { alert("Failed to add field"); }
     };
 
     const handleDeleteField = async (fieldId) => {
         try {
             await api.delete(`/form-fields/${fieldId}/`);
             fetchForm();
-        } catch (err) { alert("Failed to delete field"); }
+        } catch (_) { alert("Failed to delete field"); }
     };
 
     const handleDeleteSection = async (secId) => {
@@ -148,7 +148,7 @@ export default function AdminFormBuilder() {
             await api.delete(`/form-sections/${secId}/`);
             if (activeSectionId === secId) setActiveSectionId(null);
             fetchForm();
-        } catch (err) { alert("Failed to delete section"); }
+        } catch (_) { alert("Failed to delete section"); }
     };
 
     const handleMoveField = async (field, direction) => {
@@ -181,21 +181,21 @@ export default function AdminFormBuilder() {
             ]);
 
             fetchForm();
-        } catch (err) { alert("Reorder failed"); }
+        } catch (_) { alert("Reorder failed"); }
     };
 
     const handleToggleActive = async () => {
         try {
             await api.patch(`/forms/${id}/`, { is_active: !form.is_active });
             fetchForm();
-        } catch (err) { alert("Toggle failed"); }
+        } catch (_) { alert("Toggle failed"); }
     };
 
     const handleUpdateDeadline = async (date) => {
         try {
             await api.patch(`/forms/${id}/`, { closes_at: date });
             fetchForm();
-        } catch (err) { alert("Deadline update failed"); }
+        } catch (_) { alert("Deadline update failed"); }
     };
 
     const handleStartEdit = (field) => {
