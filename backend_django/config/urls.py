@@ -20,6 +20,6 @@ api_patterns = user_urls.urlpatterns + project_urls.urlpatterns + events_urls.ur
 urlpatterns = [
     path('internal-v1-secret-admin/', admin.site.urls),
     path('api/', include(api_patterns)),
-    path('api/recruitments/', include(recruitment_urls)),
+    path('api/recruitment/', include(recruitment_urls)),
     path('api/attendance/', include('attendance.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
