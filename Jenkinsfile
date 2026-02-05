@@ -1,20 +1,15 @@
 pipeline {
     agent any
 
+    options {
+        timestamps()
+        disableConcurrentBuilds()
+    }
+
     environment {
-        // Public GitHub repo
         GITHUB_REPO = "https://github.com/jeetumodi/robotech-assginment-241AI018.git"
-
-        // Backend
-        DJANGO_SETTINGS_MODULE = "config.settings"
-        PYTHONUNBUFFERED = "1"
-
-        // Frontend
-        VITE_API_BASE_URL = "https://localhost:5173/api"
-
-        // Paths
-        BACKEND_DIR = "backend_django"
-        FRONTEND_DIR = "frontend"
+        VITE_API_BASE_URL = "http://localhost:5173/api"
+        NODE_EXPORTER_URL = "http://host.docker.internal:9100/metrics"
     }
 
     triggers {
@@ -23,78 +18,47 @@ pipeline {
 
     stages {
 
-        stage('Checkout from GitHub') {
+        stage('Checkout') {
             steps {
-                git branch: 'bugs-fix',
-                    url: "${GITHUB_REPO}"
+                git branch: 'ci-cd', url: "${GITHUB_REPO}"
             }
         }
 
-        stage('Backend: Setup Python Environment') {
+        stage('Node Exporter Check') {
             steps {
-                dir("${BACKEND_DIR}") {
-                    sh '''
-                        python3 -m venv venv
-                        . venv/bin/activate
-                        pip install --upgrade pip
-                        pip install -r requirements.txt
-                    '''
-                }
-            }
-        }
-
-        stage('Backend: Lint, Migrate & Static') {
-            steps {
-                dir("${BACKEND_DIR}") {
-                    sh '''
-                        . venv/bin/activate
-                        cp .env.example .env
-
-                        python manage.py check
-                        python manage.py migrate --noinput
-                        python manage.py collectstatic --noinput
-                    '''
-                }
-            }
-        }
-
-        stage('Backend: Tests') {
-            steps {
-                dir("${BACKEND_DIR}") {
-                    sh '''
-                        . venv/bin/activate
-                        python manage.py test
-                    '''
-                }
-            }
-        }
-
-        stage('Frontend: Install Dependencies') {
-            steps {
-                dir("${FRONTEND_DIR}") {
-                    sh '''
-                        npm install
-                    '''
-                }
-            }
-        }
-
-        stage('Frontend: Production Build') {
-            steps {
-                dir("${FRONTEND_DIR}") {
-                    sh '''
-                        echo "VITE_API_BASE_URL=${VITE_API_BASE_URL}" > .env
-                        npm run build
-                    '''
-                }
-            }
-        }
-
-        stage('Verify Build Artifacts') {
-            steps {
+                echo "📊 Checking Node Exporter metrics"
                 sh '''
-                    test -d frontend/dist
-                    test -d backend_django/staticfiles
+                    if ! curl -sf ${NODE_EXPORTER_URL} > /dev/null; then
+                        echo "❌ Node Exporter is NOT reachable"
+                        exit 1
+                    fi
+
+                    echo "✅ Node Exporter is running"
+                    echo "---- Sample metrics ----"
+                    curl -s ${NODE_EXPORTER_URL} | head -20
+                '''
+            }
+        }
+
+        stage('Backend CI Build') {
+            steps {
+                echo "🏗️ Building backend CI image"
+                sh '''
+                    docker build \
+                      -f Dockerfile.backend.ci \
+                      -t robotech-backend-ci .
+                '''
+            }
+        }
+
+        stage('Frontend CI Build') {
+            steps {
+                echo "🏗️ Building frontend CI image"
+                sh '''
+                    docker build \
+                      -f Dockerfile.frontend.ci \
+                      --build-arg VITE_API_BASE_URL=${VITE_API_BASE_URL} \
+                      -t robotech-frontend-ci .
                 '''
             }
         }
@@ -102,10 +66,25 @@ pipeline {
 
     post {
         success {
-            echo "✅ Public GitHub CI pipeline completed successfully"
+            echo "✅ CI pipeline completed successfully"
         }
+
         failure {
-            echo "❌ CI pipeline failed"
+            withCredentials([
+                string(credentialsId: 'DISCORD_WEBHOOK_URL', variable: 'WEBHOOK')
+            ]) {
+                sh '''
+                curl -X POST -H "Content-Type: application/json" \
+                -d "{
+                    \\"content\\": \\"❌ Jenkins CI FAILED\\nJob: ${JOB_NAME}\\nBuild: #${BUILD_NUMBER}\\nURL: ${BUILD_URL}\\"
+                }" \
+                $WEBHOOK
+                '''
+            }
+        }
+
+        always {
+            cleanWs()
         }
     }
 }
