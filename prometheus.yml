@@ -1,0 +1,18 @@
+global:
+  scrape_interval: 5s
+
+scrape_configs:
+  # Node exporter metrics
+  - job_name: "node-exporter"
+    static_configs:
+      - targets:
+          - "host.docker.internal:9100"
+  # Django metrics
+  - job_name: 'django'
+    static_configs:
+      - targets: ['host.docker.internal:8000']
+  # Nginx metrics(request rates and error rates)
+  - job_name: 'nginx'
+    static_configs:
+      - targets: ["nginx:9113"]
+

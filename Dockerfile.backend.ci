@@ -1,0 +1,37 @@
+FROM python:3.11-slim
+
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+ENV CI=true
+
+WORKDIR /app/backend_django
+
+# system deps
+RUN apt-get update && apt-get install -y \
+    sqlite3 \
+    && rm -rf /var/lib/apt/lists/*
+
+# ONLY BACKEND CODE
+COPY backend_django/ .
+
+# Install deps
+RUN pip install --upgrade pip && \
+    pip install -r requirements.txt
+
+# Env for CI
+RUN cp .env.example .env || true
+
+# Django checks
+RUN python manage.py check
+
+# Migrations + static
+RUN python manage.py migrate --noinput && \
+    python manage.py collectstatic --noinput
+
+# Tests
+RUN python manage.py test
+
+# Artifact check
+RUN test -d staticfiles
+
+CMD ["echo", "✅ Backend CI build successful"]
