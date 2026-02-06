@@ -20,7 +20,7 @@ pipeline {
 
         stage('Checkout') {
             steps {
-                git branch: 'ci-cd', url: "${GITHUB_REPO}"
+                git branch: 'main', url: "${GITHUB_REPO}"
             }
         }
 
