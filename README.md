@@ -60,11 +60,17 @@ The Prometheus scrape config is in [prometheus.yml](prometheus.yml). It targets:
 - Nginx exporter on `localhost:9113`.
 
 ## Screenshots
-
+- CI/CD Success Pipeline
 ![CI/CD Success Pipeline](screenshots/ci-cd-sucess-pipeline.png)
+- CI/CD Faluire Pipeline
 ![CI/CD Failure Pipeline](screenshots/ci-cd-failure-pipeline.png)
+- Discord Alerts for ci/cd
 ![Discord Alert for CI/CD Pipeline](screenshots/discord-alert-for-cicdpipeline.png)
+- Prometheus Targets status
 ![Prometheus Targets Status](screenshots/prometheus-status.png)
+-Grafana DB
 ![Grafana DB Requests](screenshots/db-requests-grfana.png)
+- Grafana Nginx
 ![Grafana Nginx Request Rate](screenshots/nginx-request-rate-grfana.png)
+- Website home
 ![Website Home](screenshots/website.png)
