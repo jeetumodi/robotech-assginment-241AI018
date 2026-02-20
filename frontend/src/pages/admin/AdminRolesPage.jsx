@@ -89,7 +89,7 @@ export default function AdminRolesPage() {
         try {
             await api.delete(`/roles/${id}/`);
             loadRoles();
-        } catch (err) {
+        } catch {
             alert("Failed to delete role");
         }
     };

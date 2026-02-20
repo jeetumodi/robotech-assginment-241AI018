@@ -15,7 +15,7 @@ export default function Navbar() {
         if (res.data) {
           setRecruitmentLink(true); // Just indicate it exists
         }
-      } catch (_) { 
+      } catch{ 
         // Silently fail - recruitment check is optional
       }
     };

@@ -6,7 +6,7 @@ export default function QuizEngine() {
     const { id } = useParams();
     const navigate = useNavigate();
     const [quiz, setQuiz] = useState(null);
-    const [attempt, setAttempt] = useState(null);
+    const [ setAttempt] = useState(null);
     const [loading, setLoading] = useState(true);
     const [timeLeft, setTimeLeft] = useState(null);
     const [currentQIndex, setCurrentQIndex] = useState(0);
@@ -31,8 +31,8 @@ export default function QuizEngine() {
         // 2. Fullscreen Enforcement
         const enterFS = () => {
             if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen().catch(_ => {
-                    console.warn("Fullscreen deferred: Awaiting user pulse.");
+                document.documentElement.requestFullscreen().catch(err => {
+                    console.warn("Fullscreen deferred: Awaiting user pulse.", err);
                 });
             }
         };
@@ -101,7 +101,10 @@ export default function QuizEngine() {
                 setTimeLeft(attempt.time_left);
                 setResponses(attempt.responses || {});
                 setLoading(false);
-            } catch (_) { navigate("/quizzes"); }
+            } catch (err) { 
+                console.error("Failed to initialize quiz:", err);
+                navigate("/quizzes"); 
+            }
         };
         init();
     }, [id]);
@@ -142,7 +145,8 @@ export default function QuizEngine() {
         try {
             await api.post(`/quizzes/${id}/submit_quiz/`, { email: guestEmail });
             navigate("/quizzes/success");
-        } catch (_) {
+        } catch (err) {
+            console.error("Failed to submit quiz:", err);
             alert("Transmission failure.");
         } finally {
             setLoading(false);

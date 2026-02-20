@@ -20,7 +20,7 @@ export default function QuizPortal() {
 
         try {
             // Check if code exists and quiz is active
-            const res = await api.post("/quizzes/join_by_code/", { code });
+            const _res = await api.post("/quizzes/join_by_code/", { code });
             setIsCodeValid(true);
         } catch (err) {
             setError(err.response?.data?.error || "Invalid Node Code");

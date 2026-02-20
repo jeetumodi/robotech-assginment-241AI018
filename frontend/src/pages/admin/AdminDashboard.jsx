@@ -254,7 +254,7 @@ function StatCard({ label, value, color }) {
   return (
     <div className={`bg-gradient-to-br ${themes[color]} border rounded-xl p-4 flex items-center gap-4 shadow-lg shadow-black/20 hover:border-white/20 transition-all duration-300`}>
       <div className={`p-2.5 rounded-lg bg-black/40 border border-white/5 ${themes[color].split(' ')[2]}`}>
-        <Icon size={20} />
+        {/* Placeholder for potential icons */}
       </div>
       <div>
         <p className="text-[10px] font-black uppercase tracking-wider opacity-50 mb-0.5">{label}</p>
@@ -268,7 +268,7 @@ function StatCard({ label, value, color }) {
 const RecruitmentToggleCard = () => {
   const stored = typeof window !== 'undefined' ? localStorage.getItem("recruitment_open") === "true" : false;
   const [enabled, setEnabled] = useState(stored);
-  const [loading, setLoading] = useState(false);
+  const [loading, _setLoading] = useState(false);
 
   // Initial fetch
   useEffect(() => {

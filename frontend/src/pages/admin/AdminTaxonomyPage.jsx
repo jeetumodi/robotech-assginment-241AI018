@@ -41,8 +41,10 @@ export default function AdminTaxonomyPage() {
     };
 
     useEffect(() => {
-        loadData();
-         
+        const fetchData = async () => {
+            await loadData();
+        };
+        fetchData();
     }, []);
 
     const handleSave = async (e) => {

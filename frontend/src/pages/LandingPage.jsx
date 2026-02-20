@@ -181,7 +181,7 @@ export default function LandingPage() {
             <div className="mb-12 relative flex justify-between items-center max-w-3xl mx-auto">
               <div className="absolute top-1/2 left-0 w-full h-0.5 bg-white/10 -z-10" />
 
-              {recruitment.timeline && recruitment.timeline.map((event, i) => {
+              {recruitment.timeline && recruitment.timeline.map((event, _index) => {
                 const eventDate = new Date(event.date);
                 const now = new Date();
                 // Reset times to compare dates only (to avoid timezone messiness for same-day events)

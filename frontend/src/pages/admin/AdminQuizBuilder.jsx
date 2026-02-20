@@ -23,7 +23,7 @@ export default function AdminQuizBuilder() {
             setQuiz(res.data);
             setEditQuiz(res.data);
             setQuestions(res.data.questions || []);
-        } catch (err) { navigate("/portal/quizzes"); }
+        } catch  { navigate("/portal/quizzes"); }
         finally { setLoading(false); }
     };
 
@@ -32,7 +32,7 @@ export default function AdminQuizBuilder() {
         try {
             await api.patch(`/quizzes/${id}/`, editQuiz);
             alert("Base configuration updated.");
-        } catch (err) { alert("Update failed."); }
+        } catch  { alert("Update failed."); }
         finally { setSaving(false); }
     };
 
@@ -47,14 +47,14 @@ export default function AdminQuizBuilder() {
                 order: questions.length
             });
             setQuestions([...questions, { ...res.data, options: [] }]);
-        } catch (_) { alert("Failed to deploy item."); }
+        } catch  { alert("Failed to deploy item."); }
     };
 
     const handleUpdateQuestion = async (qId, data) => {
         try {
             const res = await api.patch(`/questions/${qId}/`, data);
             setQuestions(questions.map(q => q.id === qId ? { ...res.data, options: q.options } : q));
-        } catch (_) { /* Ignore update errors */ }
+        } catch  { /* Ignore update errors */ }
     };
 
     const handleDeleteQuestion = async (qId) => {
@@ -62,7 +62,7 @@ export default function AdminQuizBuilder() {
         try {
             await api.delete(`/questions/${qId}/`);
             setQuestions(questions.filter(q => q.id !== qId));
-        } catch (_) { /* Ignore delete errors */ }
+        } catch  { /* Ignore delete errors */ }
     };
 
     const handleAddOption = async (qId) => {
@@ -74,7 +74,7 @@ export default function AdminQuizBuilder() {
                 order: 0
             });
             setQuestions(questions.map(q => q.id === qId ? { ...q, options: [...q.options, res.data] } : q));
-        } catch (_) { /* Ignore option add errors */ }
+        } catch  { /* Ignore option add errors */ }
     };
 
     const handleUpdateOption = async (qId, oId, data) => {
@@ -84,7 +84,7 @@ export default function AdminQuizBuilder() {
                 ...q,
                 options: q.options.map(o => o.id === oId ? res.data : o)
             } : q));
-        } catch (_) { /* Ignore option update errors */ }
+        } catch  { /* Ignore option update errors */ }
     };
 
     const handleDeleteOption = async (qId, oId) => {
@@ -94,7 +94,7 @@ export default function AdminQuizBuilder() {
                 ...q,
                 options: q.options.filter(o => o.id !== oId)
             } : q));
-        } catch (_) { /* Ignore option delete errors */ }
+        } catch  { /* Ignore option delete errors */ }
     };
 
     if (loading) return <div className="p-10 text-cyan-500 animate-pulse text-center uppercase font-black">Syncing Node...</div>;

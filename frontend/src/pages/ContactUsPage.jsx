@@ -58,7 +58,7 @@ export default function ContactUs() {
     setSuccess(false);
 
     try {
-      const res = await api.post("/contact-messages/", formValues);
+      const _res = await api.post("/contact-messages/", formValues);
       // api.post returns the response object directly, no need for res.ok check as axios throws on error (caught in catch)
       // if (!res.ok) throw new Error(...) is not needed with axios interceptors usually, but let's keep logic simple.
       // With axios, success is 2xx.

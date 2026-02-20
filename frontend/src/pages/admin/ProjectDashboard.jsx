@@ -103,7 +103,7 @@ export default function ProjectDashboard() {
         if (!user) return;
 
         let timeoutId;
-        let isMount = true;
+        let _isMount = true;
 
         const poll = async () => {
             // Stop polling if not active or tab hidden (Browser API)
@@ -171,7 +171,7 @@ export default function ProjectDashboard() {
         timeoutId = setTimeout(poll, 5000);
 
         return () => {
-            isMount = false;
+            _isMount = false;
             clearTimeout(timeoutId);
         };
     }, [id, activeTab, project, user]);
@@ -354,7 +354,7 @@ function OverviewTab({ project }) {
     );
 }
 
-function TasksTab({ project, user, allUsers, onUpdate }) {
+function TasksTab({ project, user, _allUsers, onUpdate }) {
     const [newTask, setNewTask] = useState({ title: "", due_date: "", requirements: "", assigned_to: "" });
     const [showAdd, setShowAdd] = useState(false);
 
@@ -370,7 +370,7 @@ function TasksTab({ project, user, allUsers, onUpdate }) {
             setNewTask({ title: "", due_date: "", requirements: "", assigned_to: "" });
             setShowAdd(false);
             onUpdate();
-        } catch (err) { alert("Failed"); }
+        } catch  { alert("Failed"); }
     }
 
     const isLead = project.lead === user.id || user.is_superuser;
@@ -461,7 +461,7 @@ function DiscussionsTab({ project, setProject, user, onUpdate, unreadMsgIds, set
             const res = await api.post("/threads/", { title, project: project.id });
             setActiveThreadId(res.data.id);
             onUpdate(true);
-        } catch (err) { alert("Failed to deploy channel."); }
+        } catch  { alert("Failed to deploy channel."); }
     }
 
     const handleSendMsg = async (e) => {
@@ -508,7 +508,7 @@ function DiscussionsTab({ project, setProject, user, onUpdate, unreadMsgIds, set
         try {
             await api.post(`/threads/${id}/toggle_ephemeral/`);
             onUpdate();
-        } catch (err) { alert("Logic failure."); }
+        } catch  { alert("Logic failure."); }
     }
 
     const handlePurgeMessages = async (id) => {
@@ -516,7 +516,7 @@ function DiscussionsTab({ project, setProject, user, onUpdate, unreadMsgIds, set
         try {
             await api.post(`/threads/${id}/purge_messages/`);
             onUpdate();
-        } catch (err) { alert("Wipe failed."); }
+        } catch  { alert("Wipe failed."); }
     }
 
     const handleDeleteThread = async (id) => {
@@ -525,7 +525,7 @@ function DiscussionsTab({ project, setProject, user, onUpdate, unreadMsgIds, set
             await api.delete(`/threads/${id}/`);
             if (activeThreadId === id) setActiveThreadId(null);
             onUpdate();
-        } catch (err) { alert("Failed."); }
+        } catch  { alert("Failed."); }
     }
 
     const currentThread = project.threads?.find(t => t.id === activeThreadId);
@@ -554,7 +554,7 @@ function DiscussionsTab({ project, setProject, user, onUpdate, unreadMsgIds, set
     }, [activeThreadId]);
 
     const [typers, setTypers] = useState([]);
-    const [isTyping, setIsTyping] = useState(false);
+    const [_isTyping, setIsTyping] = useState(false);
     const typingTimeoutRef = useRef(null);
     const lastSentRef = useRef(0);
 
@@ -588,7 +588,9 @@ function DiscussionsTab({ project, setProject, user, onUpdate, unreadMsgIds, set
             try {
                 const res = await api.get(`/threads/${activeThreadId}/get_typing_status/`);
                 setTypers(res.data.typers || []);
-            } catch (err) { }
+            } catch  {
+                // On error, assume no one is typing to avoid stale state
+             }
         };
 
         const interval = setInterval(pollTypers, 3000); // Check every 3s
@@ -732,7 +734,7 @@ function TeamTab({ project, user, allUsers, onUpdate }) {
         try {
             await api.patch(`/projects/${project.id}/`, { members: newMembers });
             onUpdate();
-        } catch (err) { alert("Deployment failed."); }
+        } catch  { alert("Deployment failed."); }
     }
 
     const handleRemoveMember = async (targetUserId) => {
@@ -740,7 +742,7 @@ function TeamTab({ project, user, allUsers, onUpdate }) {
         try {
             await api.patch(`/projects/${project.id}/`, { members: newMembers });
             onUpdate();
-        } catch (err) { alert("Operation failed."); }
+        } catch  { alert("Operation failed."); }
     }
 
     return (
@@ -869,7 +871,7 @@ function ManagementTab({ project, allUsers, onUpdate }) {
         try {
             await api.delete(`/projects/${project.id}/`);
             navigate("/portal/projects");
-        } catch (err) { alert("Deletion failed."); }
+        } catch  { alert("Deletion failed."); }
     }
 
     const handleUpdate = async (e) => {
@@ -890,7 +892,7 @@ function ManagementTab({ project, allUsers, onUpdate }) {
             await api.patch(`/projects/${project.id}/`, fd);
             onUpdate();
             alert("Sector parameters updated successfully.");
-        } catch (err) { alert("Failed"); }
+        } catch  { alert("Failed"); }
         finally { setSaving(false); }
     }
 

@@ -8,40 +8,35 @@ export default function AdminLayout() {
     const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
 
-    const fetchUser = () => {
-        api.get("/me/")
-            .then(res => {
-                setUser(res.data);
-                setLoading(false);
-            })
-            .catch(err => {
-                console.error("Auth failed", err);
-                localStorage.removeItem("accessToken");
-                navigate("/login");
-                setLoading(false);
-            });
-    };
-
     useEffect(() => {
+        const fetchUser = () => {
+            api.get("/me/")
+                .then(res => {
+                    setUser(res.data);
+                    setLoading(false);
+                })
+                .catch(err => {
+                    console.error("Auth failed", err);
+                    localStorage.removeItem("accessToken");
+                    navigate("/login");
+                    setLoading(false);
+                });
+        };
+
         // Initial Load
         const token = localStorage.getItem("accessToken");
         if (!token) {
             navigate("/login");
             return;
         }
+
         fetchUser();
 
         // Re-fetch on window focus (for role updates)
         const onFocus = () => fetchUser();
         window.addEventListener("focus", onFocus);
         return () => window.removeEventListener("focus", onFocus);
-    }, [navigate]);
-
-    const logout = () => {
-        localStorage.removeItem("accessToken");
-        localStorage.removeItem("refreshToken");
-        navigate("/login");
-    };
+    }, [navigate]); // ✅ no missing dependencies warning
 
     if (loading) {
         return (
@@ -50,6 +45,11 @@ export default function AdminLayout() {
             </div>
         );
     }
+    const logout = () => {
+        localStorage.removeItem("accessToken");
+        setUser(null);
+        navigate("/login");
+    };
 
     // Ensure user object exists to prevent crashes in Sidebar/Outlet
     const safeUser = user || { username: "Guest", role: "GUEST" };

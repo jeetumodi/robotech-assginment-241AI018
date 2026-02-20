@@ -7,14 +7,14 @@ export default function AdminContactMessages() {
 
   const [messages, setMessages] = useState([]);
   const [total, setTotal] = useState(0);
-  const [page, setPage] = useState(1);
+  const [page, _setPage] = useState(1);
   const [loading, setLoading] = useState(false);
   const [selected, setSelected] = useState(null);
 
   /* ===== DELETE CONFIRMATION ===== */
   const [confirmDelete, setConfirmDelete] = useState(false);
 
-  const [filters, setFilters] = useState({
+  const [filters, _setFilters] = useState({
     isRead: "",
     isReplied: "",
     email: "",
@@ -31,7 +31,7 @@ export default function AdminContactMessages() {
       const res = await api.get("/contact-messages/", {
         params: {
           ...Object.fromEntries(
-            Object.entries(filters).filter(([_, v]) => v !== "")
+            Object.entries(filters).filter(([_err, v]) => v !== "")
           ),
         },
       });
@@ -70,7 +70,7 @@ export default function AdminContactMessages() {
     fetchMessages();
   };
 
-  const totalPages = Math.ceil(total / limit);
+  const _totalPages = Math.ceil(total / limit);
 
   return (
     <div className="p-4 sm:p-6 text-white max-w-6xl mx-auto">

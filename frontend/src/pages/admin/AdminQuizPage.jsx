@@ -36,7 +36,7 @@ export default function AdminQuizPage() {
                 default_negative_marks: 1
             });
             navigate(`/portal/quizzes/${res.data.id}`);
-        } catch (err) {
+        } catch  {
             alert("Failed to initiate sequence.");
         }
     };
@@ -45,7 +45,7 @@ export default function AdminQuizPage() {
         try {
             await api.patch(`/quizzes/${quiz.id}/`, { is_active: !quiz.is_active });
             fetchQuizzes();
-        } catch (err) { alert("Command rejected."); }
+        } catch  { alert("Command rejected."); }
     };
 
     const handleDelete = async (quizId) => {
@@ -53,7 +53,7 @@ export default function AdminQuizPage() {
         try {
             await api.delete(`/quizzes/${quizId}/`);
             setQuizzes(quizzes.filter(q => q.id !== quizId));
-        } catch (err) { alert("Purge sequence failed."); }
+        } catch  { alert("Purge sequence failed."); }
     };
 
     if (loading) return <div className="p-10 text-cyan-500 animate-pulse font-black uppercase tracking-widest text-center">Opening Exam Vault...</div>;

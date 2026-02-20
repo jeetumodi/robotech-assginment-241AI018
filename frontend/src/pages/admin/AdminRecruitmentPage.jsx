@@ -68,14 +68,14 @@ export default function AdminRecruitmentPage() {
             setDriveForm({ title: "", registration_link: "", description: "" });
             setShowDriveForm(false);
             loadDrives();
-        } catch (err) { alert("Failed to create drive"); }
+        } catch  { alert("Failed to create drive"); }
     };
 
     const handleSetActive = async (drive) => {
         try {
             await api.patch(`/recruitment/drives/${drive.id}/`, { is_active: !drive.is_active });
             loadDrives();
-        } catch (err) { alert("Failed to update status"); }
+        } catch  { alert("Failed to update status"); }
     };
 
     const handleDeleteDrive = async (id) => {
@@ -84,7 +84,7 @@ export default function AdminRecruitmentPage() {
             await api.delete(`/recruitment/drives/${id}/`);
             loadDrives();
             setSelectedDrive(null);
-        } catch (err) { alert("Failed to delete"); }
+        } catch  { alert("Failed to delete"); }
     };
 
     // Timeline Actions
@@ -98,21 +98,21 @@ export default function AdminRecruitmentPage() {
             });
             setTimelineForm({ title: "", date: "", is_completed: false });
             loadDrives();
-        } catch (err) { alert("Failed to add event"); }
+        } catch  { alert("Failed to add event"); }
     };
 
     const handleToggleComplete = async (item) => {
         try {
             await api.patch(`/recruitment/timeline/${item.id}/`, { is_completed: !item.is_completed });
             loadDrives();
-        } catch (err) { alert("Failed"); }
+        } catch  { alert("Failed"); }
     };
 
     const handleDeleteEvent = async (id) => {
         try {
             await api.delete(`/recruitment/timeline/${id}/`);
             loadDrives();
-        } catch (err) { alert("Failed"); }
+        } catch  { alert("Failed"); }
     };
 
     // Assignment Actions
@@ -133,7 +133,7 @@ export default function AdminRecruitmentPage() {
             setAssignmentForm({ title: "", description: "", sig: "", external_link: "" });
             setAssignmentFile(null);
             loadDrives();
-        } catch (err) { alert("Failed to add assignment"); }
+        } catch  { alert("Failed to add assignment"); }
     };
 
     const handleDeleteAssignment = async (id) => {
@@ -141,7 +141,7 @@ export default function AdminRecruitmentPage() {
         try {
             await api.delete(`/recruitment/assignments/${id}/`);
             loadDrives();
-        } catch (err) { alert("Failed"); }
+        } catch  { alert("Failed"); }
     };
 
     // Application Actions
@@ -159,7 +159,7 @@ export default function AdminRecruitmentPage() {
                 status: 'INTERVIEW_SCHEDULED'
             });
             loadApplications(selectedDrive.id);
-        } catch (err) { alert("Failed to schedule"); }
+        } catch  { alert("Failed to schedule"); }
     };
 
     // Update link
@@ -271,7 +271,7 @@ export default function AdminRecruitmentPage() {
                                     </h3>
 
                                     <div className="space-y-6 relative ml-2 border-l border-white/10 pl-6 pb-4">
-                                        {selectedDrive.timeline && selectedDrive.timeline.length > 0 ? selectedDrive.timeline.map((item, index) => (
+                                        {selectedDrive.timeline && selectedDrive.timeline.length > 0 ? selectedDrive.timeline.map((item, _index) => (
                                             <div key={item.id} className="relative group">
                                                 <div className={`absolute -left-[31px] top-1.5 w-3 h-3 rounded-full border-2 ${item.is_completed ? 'bg-green-500 border-green-500' : 'bg-black border-gray-600'}`} />
                                                 <div className="flex justify-between items-start bg-white/5 p-4 rounded-xl border border-white/5 hover:border-white/10 transition">

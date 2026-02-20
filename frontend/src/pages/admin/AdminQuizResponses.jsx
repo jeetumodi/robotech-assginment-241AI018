@@ -22,7 +22,7 @@ export default function AdminQuizResponses() {
             ]);
             setQuiz(qRes.data);
             setAttempts(aRes.data.filter(a => a.quiz === parseInt(id)));
-        } catch (err) { navigate("/admin/quizzes"); }
+        } catch { navigate("/admin/quizzes"); }
         finally { setLoading(false); }
     };
 

@@ -28,7 +28,7 @@ export default function AdminAttendanceDetail() {
             try {
                 const recRes = await api.get(`/attendance/sessions/${id}/records/`);
                 setRecords(recRes.data);
-            } catch (_) {
+            } catch {
                 // Ignore 404/empty
             }
 
@@ -47,7 +47,7 @@ export default function AdminAttendanceDetail() {
             const res = await api.post(`/attendance/sessions/${id}/populate/`);
             alert(`Added ${res.data.added} new records.`);
             loadSession();
-        } catch (_) {
+        } catch {
             alert("Failed to populate list");
             setLoading(false);
         }
@@ -88,7 +88,7 @@ export default function AdminAttendanceDetail() {
             await api.post(`/attendance/sessions/${id}/batch_update/`, { updates });
             setPendingChanges({});
             // loadSession(); // No need to reload if optimistic was correct
-        } catch (_) {
+        } catch {
             alert("Failed to save changes");
             loadSession(); // Revert
         } finally {

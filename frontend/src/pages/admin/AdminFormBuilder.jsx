@@ -68,7 +68,7 @@ export default function AdminFormBuilder() {
             if (res.data.sections?.length > 0 && !activeSectionId) {
                 setActiveSectionId(res.data.sections[0].id);
             }
-        } catch (_) {
+        } catch  {
             navigate("/portal/forms");
         } finally {
             setLoading(false);
@@ -79,7 +79,7 @@ export default function AdminFormBuilder() {
         try {
             await api.patch(`/forms/${id}/`, { theme });
             fetchForm();
-        } catch (_) { alert("Theme update failed"); }
+        } catch  { alert("Theme update failed"); }
     };
 
     const handleUpdateMeta = async () => {
@@ -93,7 +93,7 @@ export default function AdminFormBuilder() {
             });
             setIsEditingMeta(false);
             fetchForm();
-        } catch (_) { alert("Failed to update form details"); }
+        } catch  { alert("Failed to update form details"); }
     };
 
     const handleAddSection = async () => {
@@ -107,7 +107,7 @@ export default function AdminFormBuilder() {
             setNewSectionTitle("");
             setActiveSectionId(res.data.id);
             fetchForm();
-        } catch (_) { alert("Failed to add section"); }
+        } catch  { alert("Failed to add section"); }
     };
 
     const handleAddField = async () => {
@@ -132,14 +132,14 @@ export default function AdminFormBuilder() {
             setIsRequired(false);
             setOptionsList([""]);
             fetchForm();
-        } catch (_) { alert("Failed to add field"); }
+        } catch  { alert("Failed to add field"); }
     };
 
     const handleDeleteField = async (fieldId) => {
         try {
             await api.delete(`/form-fields/${fieldId}/`);
             fetchForm();
-        } catch (_) { alert("Failed to delete field"); }
+        } catch  { alert("Failed to delete field"); }
     };
 
     const handleDeleteSection = async (secId) => {
@@ -148,7 +148,7 @@ export default function AdminFormBuilder() {
             await api.delete(`/form-sections/${secId}/`);
             if (activeSectionId === secId) setActiveSectionId(null);
             fetchForm();
-        } catch (_) { alert("Failed to delete section"); }
+        } catch  { alert("Failed to delete section"); }
     };
 
     const handleMoveField = async (field, direction) => {
@@ -181,21 +181,21 @@ export default function AdminFormBuilder() {
             ]);
 
             fetchForm();
-        } catch (_) { alert("Reorder failed"); }
+        } catch  { alert("Reorder failed"); }
     };
 
     const handleToggleActive = async () => {
         try {
             await api.patch(`/forms/${id}/`, { is_active: !form.is_active });
             fetchForm();
-        } catch (_) { alert("Toggle failed"); }
+        } catch  { alert("Toggle failed"); }
     };
 
     const handleUpdateDeadline = async (date) => {
         try {
             await api.patch(`/forms/${id}/`, { closes_at: date });
             fetchForm();
-        } catch (_) { alert("Deadline update failed"); }
+        } catch  { alert("Deadline update failed"); }
     };
 
     const handleStartEdit = (field) => {
@@ -538,7 +538,7 @@ export default function AdminFormBuilder() {
                                         onChange={e => setNewFieldName(e.target.value)}
                                     />
                                     <label className="flex items-center gap-3 mt-4 cursor-pointer group">
-                                        <input type="checkbox" checked={isRequired} onChange={e => setIsRequired(e.target.checked)} className="accent-orange-500" />
+                                               <input type="checkbox" checked={isRequired} onChange={e => setIsRequired(e.target.checked)} className="accent-orange-500" />
                                         <span className="text-[10px] font-bold text-gray-500 uppercase group-hover:text-white transition-colors">Mandatory Signal</span>
                                     </label>
                                 </div>

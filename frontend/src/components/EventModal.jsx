@@ -43,6 +43,19 @@ export default function EventModal({ eventId, onClose }) {
   const startYRef = useRef(0);
 
   useEffect(() => {
+    const fetchEvent = async () => {
+      try {
+        setLoading(true);
+        const res = await api.get(`/events/${eventId}`);
+        setEvent(res.data);
+      } catch (err) {
+        console.error("Failed to load event", err);
+        onClose();
+      } finally {
+        setLoading(false);
+      }
+    };
+
     document.body.style.overflow = "hidden";
 
     fetchEvent();
@@ -52,24 +65,12 @@ export default function EventModal({ eventId, onClose }) {
     };
 
     window.addEventListener("keydown", handleEsc);
+
     return () => {
       document.body.style.overflow = "auto";
       window.removeEventListener("keydown", handleEsc);
     };
-  }, [eventId, onClose]);
-
-  async function fetchEvent() {
-    try {
-      setLoading(true);
-      const res = await api.get(`/events/${eventId}`);
-      setEvent(res.data);
-    } catch (err) {
-      console.error("Failed to load event", err);
-      onClose();
-    } finally {
-      setLoading(false);
-    }
-  }
+  }, [eventId, onClose]); // ✅ now no fetchEvent dependency needed
 
   function onTouchStart(e) {
     startYRef.current = e.touches[0].clientY;

@@ -88,7 +88,7 @@ export default function PublicFormView() {
                 else initial[f.label] = "";
             });
             setResponses(initial);
-        } catch (_) {
+        } catch{
             navigate("/404");
         } finally {
             setLoading(false);
@@ -145,7 +145,7 @@ export default function PublicFormView() {
                 data: responses
             });
             setSubmitted(true);
-        } catch (_) {
+        } catch {
             setError("Transmission REJECTED. Security protocol interference.");
         }
     };

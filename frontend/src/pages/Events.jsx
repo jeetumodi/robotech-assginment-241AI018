@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../api/axios";
-import { buildMediaUrl } from "../utils/mediaUrl";
 import { formatDateIST } from "../utils/dateUtils";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";

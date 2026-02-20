@@ -51,7 +51,8 @@ export default function AdminAttendancePage() {
             await api.post("/attendance/sessions/", payload);
             setIsCreating(false);
             loadData();
-        } catch (_) {
+        } catch (err) {
+            console.error("Failed to create session:", err);
             alert("Failed to create session");
         }
     };
@@ -64,7 +65,8 @@ export default function AdminAttendancePage() {
         try {
             await api.delete(`/attendance/sessions/${id}/`);
             loadData();
-        } catch (_) {
+        } catch (err) {
+            console.error("Failed to delete session:", err);
             alert("Failed to delete session");
         }
     };

@@ -13,7 +13,7 @@ export default function AdminTeamPage() {
   const navigate = useNavigate();
 
   // Data State
-  const [allMembers, setAllMembers] = useState([]); // Raw list
+  const [_allMembers, setAllMembers] = useState([]); // Raw list
   const [groupedMembers, setGroupedMembers] = useState({}); // { "Systems": [members], "Alumni": [members] }
   const [loading, setLoading] = useState(true);
 
@@ -91,7 +91,7 @@ export default function AdminTeamPage() {
     dragOverItem.current = { group: groupKey, index };
   };
 
-  const handleDragEnd = async (e) => {
+  const handleDragEnd = async (_err) => {
     // e.target.style.opacity = '1';
     // e.target.style.background = 'none';
 

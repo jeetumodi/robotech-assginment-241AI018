@@ -25,8 +25,8 @@ export default function AdminUsersPage() {
 
     const [image, setImage] = useState(null);
     const [saving, setSaving] = useState(false);
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState("");
+    const [_loading, setLoading] = useState(false);
+    const [_error, setError] = useState("");
     const [deleteId, setDeleteId] = useState(null);
 
     // Filter State

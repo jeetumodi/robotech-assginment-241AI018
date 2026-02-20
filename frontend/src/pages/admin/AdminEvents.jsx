@@ -5,8 +5,8 @@ import { formatDateIST } from "../../utils/dateUtils";
 
 export default function AdminEvents() {
   const [events, setEvents] = useState([]);
-  const [page, setPage] = useState(1);
-  const [total, setTotal] = useState(0);
+  const [page, _setPage] = useState(1);
+  const [_total, setTotal] = useState(0);
 
   const [deleteId, setDeleteId] = useState(null);
   const [deleting, setDeleting] = useState(false);
