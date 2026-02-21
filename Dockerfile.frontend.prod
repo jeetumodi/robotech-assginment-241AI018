@@ -3,10 +3,18 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# Copy only package files first (better caching)
+# Improve network reliability for npm
+RUN npm config set fetch-retries 5 \
+ && npm config set fetch-retry-mintimeout 20000 \
+ && npm config set fetch-retry-maxtimeout 120000 \
+ && npm config set fetch-timeout 600000 \
+ && npm config set registry https://registry.npmjs.org/
+
+# Copy only package files first (better layer caching)
 COPY frontend/package*.json ./
 
-RUN npm ci
+# Install dependencies
+RUN npm ci --prefer-offline --no-audit --progress=false
 
 # Copy remaining frontend code
 COPY frontend/ .
@@ -25,13 +33,13 @@ RUN npm run build
 # ---------- Stage 2: Serve ----------
 FROM nginx:alpine
 
-# Remove default nginx config
+# Remove default nginx content
 RUN rm -rf /usr/share/nginx/html/*
 
 # Copy built files from builder stage
 COPY --from=builder /app/dist /usr/share/nginx/html
 
-# Optional: custom nginx config
+# Copy custom nginx config
 COPY frontend/nginx.conf /etc/nginx/conf.d/default.conf
 
 EXPOSE 80
