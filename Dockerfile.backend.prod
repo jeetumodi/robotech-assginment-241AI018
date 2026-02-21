@@ -1,0 +1,22 @@
+FROM python:3.11-slim
+
+WORKDIR /app/backend_django
+
+# system deps
+RUN apt-get update && apt-get install -y \
+    libpq-dev \
+    gcc \
+    && rm -rf /var/lib/apt/lists/*
+
+# ONLY BACKEND CODE
+COPY backend_django/ .
+
+# Install deps
+RUN pip install --upgrade pip && \
+    pip install -r requirements.txt
+
+RUN python manage.py collectstatic --noinput
+
+# entrypoint will handle migrations + server start
+COPY backend_django/entrypoint.sh .
+CMD ["sh", "entrypoint.sh"]

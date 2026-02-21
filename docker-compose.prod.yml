@@ -1,0 +1,27 @@
+
+services:
+  backend:
+    image: docker.io/jeetumodi/robotech/backend:latest
+    container_name: robotech-backend
+    restart: always
+    ports:
+      - "8000:8000"
+    environment:
+      - NODE_ENV=production
+      - API_URL=$VITE_API_BASE_URL
+    networks:
+      - devops-network
+
+  frontend:
+    image: docker.io/jeetumodi/robotech/frontend:latest
+    container_name: robotech-frontend
+    restart: always
+    ports:
+      - "5173:5173"
+    networks:
+      - devops-network
+
+networks:
+  default:
+    external: true
+    name: devops-network 
