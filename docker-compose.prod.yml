@@ -1,7 +1,7 @@
 
 services:
   backend:
-    image: docker.io/jeetumodi/robotech/backend:latest
+    image: docker.io/jeetumodi/robotech-backend:latest
     container_name: robotech-backend
     restart: always
     ports:
@@ -13,7 +13,7 @@ services:
       - devops-network
 
   frontend:
-    image: docker.io/jeetumodi/robotech/frontend:latest
+    image: docker.io/jeetumodi/robotech-frontend:latest
     container_name: robotech-frontend
     restart: always
     ports:

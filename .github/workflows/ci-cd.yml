@@ -31,8 +31,8 @@ jobs:
       - name: Build & Push Backend Production Image
         id: build-backend
         run: |
-          IMAGE="$DOCKER_REGISTRY/$DOCKER_REPO/backend:${GITHUB_SHA::8}"
-          IMAGE_LATEST="$DOCKER_REGISTRY/$DOCKER_REPO/backend:latest"
+          IMAGE="$DOCKER_REGISTRY/$DOCKER_REPO-backend:${GITHUB_SHA::8}"
+          IMAGE_LATEST="$DOCKER_REGISTRY/$DOCKER_REPO-backend:latest"
           docker build -t $IMAGE -t $IMAGE_LATEST -f Dockerfile.backend.prod .
           docker push $IMAGE
           docker push $IMAGE_LATEST
@@ -42,8 +42,8 @@ jobs:
       - name: Build & Push Frontend Production Image
         id: build-frontend
         run: |
-          IMAGE="$DOCKER_REGISTRY/$DOCKER_REPO/frontend:${GITHUB_SHA::8}"
-          IMAGE_LATEST="$DOCKER_REGISTRY/$DOCKER_REPO/frontend:latest"
+          IMAGE="$DOCKER_REGISTRY/$DOCKER_REPO-frontend:${GITHUB_SHA::8}"
+          IMAGE_LATEST="$DOCKER_REGISTRY/$DOCKER_REPO-frontend:latest"
           docker build -f Dockerfile.frontend.prod --build-arg VITE_API_BASE_URL=$VITE_API_BASE_URL -t $IMAGE -t $IMAGE_LATEST .
           docker push $IMAGE
           docker push $IMAGE_LATEST
