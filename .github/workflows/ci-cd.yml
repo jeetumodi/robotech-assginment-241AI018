@@ -1,0 +1,46 @@
+name: ROBOTECH CI/CD
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  VITE_API_BASE_URL: http://localhost:5173/api
+  NODE_EXPORTER_URL: http://localhost:9100/metrics
+
+jobs:
+  build:
+    runs-on: self-hosted
+
+    steps:
+      - name: checkout Repository
+        uses: actions/checkout@v4
+
+      - name: check node-exporter
+        run: |
+          if ! curl -sf $NODE_EXPORTER_URL; then
+            echo "Node Exporter is not running at $NODE_EXPORTER_URL"
+            exit 1
+          fi
+          echo "Node Exporter is running at $NODE_EXPORTER_URL"
+
+      - name: Build Backend CI image 
+        run: |
+          docker build -t robotech-backend-ci -f Dockerfile.backend.ci .
+      
+      - name: Build Frontend CI image
+        run: |
+         docker build \
+            -f Dockerfile.frontend.ci \
+            --build-arg VITE_API_BASE_URL=$VITE_API_BASE_URL \
+            -t robotech-frontend-ci .
+
+      - name: Discord Notification (on failure)
+        if: failure()
+        run: |
+          curl -X POST -H "Content-Type: application/json" \
+          -d "{
+            \"content\": \"❌ GitHub Actions CI FAILED\nRepository: ${{ github.repository }}\nWorkflow: ${{ github.workflow }}\nRun: ${{ github.run_number }}\nURL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}\"
+          }" \
+          ${{ secrets.DISCORD_WEBHOOK_URL }}
