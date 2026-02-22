@@ -3,7 +3,7 @@
 # Usage: ./deploy.sh <COMMIT_SHA>
 
 COMMIT_SHA=$1
-DOCKER_REPO=docker.io/your-dockerhub-username/robotech
+DOCKER_REPO=docker.io/jeetumodi/robotech
 
 echo "Pulling backend production image..."
 docker pull $DOCKER_REPO/backend:$COMMIT_SHA
