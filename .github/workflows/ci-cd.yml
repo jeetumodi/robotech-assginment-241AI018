@@ -63,8 +63,6 @@ jobs:
     steps:
       - name: Checkout Pull/Deploy Scripts
         uses: actions/checkout@v4
-        with:
-          path: pull-scripts
 
       - name: Generate .env.prod from GitHub Secrets
         run: |
