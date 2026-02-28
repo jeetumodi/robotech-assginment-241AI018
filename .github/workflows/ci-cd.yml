@@ -1,21 +1,18 @@
-name: ROBOTECH CI/CD - Production
+name: ROBOTECH CI - Production
 
 on:
   push:
-    branches: [main]       # deploy on main branch
+    branches: [main]
   workflow_dispatch:
 
 env:
-  VITE_API_BASE_URL: https://localhost:8000  # production API
+  VITE_API_BASE_URL: https://localhost:8000
   DOCKER_REGISTRY: docker.io
   DOCKER_REPO: jeetumodi/robotech
 
 jobs:
-  ci:
-    runs-on: self-hosted
-    outputs:
-      backend-image: ${{ steps.build-backend.outputs.image }}
-      frontend-image: ${{ steps.build-frontend.outputs.image }}
+  build:
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout Repository
@@ -27,66 +24,34 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      # Backend production build
+      # ---------------- Backend ----------------
       - name: Build & Push Backend Production Image
-        id: build-backend
         run: |
           IMAGE="$DOCKER_REGISTRY/$DOCKER_REPO-backend:${GITHUB_SHA::8}"
           IMAGE_LATEST="$DOCKER_REGISTRY/$DOCKER_REPO-backend:latest"
+
           docker build -t $IMAGE -t $IMAGE_LATEST -f Dockerfile.backend.prod .
           docker push $IMAGE
           docker push $IMAGE_LATEST
-          echo "::set-output name=image::$IMAGE"
 
-      # Frontend production build
+      # ---------------- Frontend ----------------
       - name: Build & Push Frontend Production Image
-        id: build-frontend
         run: |
           IMAGE="$DOCKER_REGISTRY/$DOCKER_REPO-frontend:${GITHUB_SHA::8}"
           IMAGE_LATEST="$DOCKER_REGISTRY/$DOCKER_REPO-frontend:latest"
-          docker build -f Dockerfile.frontend.prod --build-arg VITE_API_BASE_URL=$VITE_API_BASE_URL -t $IMAGE -t $IMAGE_LATEST .
+
+          docker build \
+            -f Dockerfile.frontend.prod \
+            --build-arg VITE_API_BASE_URL=$VITE_API_BASE_URL \
+            -t $IMAGE -t $IMAGE_LATEST .
+
           docker push $IMAGE
           docker push $IMAGE_LATEST
-          echo "::set-output name=image::$IMAGE"
 
-      - name: Discord Notification CI (on failure)
+      # ---------------- Discord Failure Notification ----------------
+      - name: Discord Notification (on failure)
         if: failure()
         run: |
           curl -X POST -H "Content-Type: application/json" \
           -d "{\"content\": \"❌ CI FAILED\nRepository: ${{ github.repository }}\nWorkflow: ${{ github.workflow }}\nRun: ${{ github.run_number }}\"}" \
-          ${{ secrets.DISCORD_WEBHOOK_URL }}
-
-  cd:
-    runs-on: self-hosted
-    needs: ci
-    if: success()
-    steps:
-      - name: Checkout Pull/Deploy Scripts
-        uses: actions/checkout@v4
-
-      - name: Generate .env.prod from GitHub Secrets
-        run: |
-          cat <<EOF > ./pull-scripts/.env.prod
-          SECRET_KEY=${{ secrets.SECRET_KEY }}
-          DEBUG=False
-          ALLOWED_HOSTS=${{ secrets.ALLOWED_HOSTS }}
-          CORS_ALLOWED_ORIGINS=${{ secrets.CORS_ALLOWED_ORIGINS }}
-          DB_NAME=robotech_db
-          DB_USER=${{ secrets.DB_USER }}
-          DB_PASSWORD=${{ secrets.DB_PASSWORD }}
-          DB_HOST=localhost
-          DB_PORT=5432
-          DATABASE_URL=sqlite:///db.sqlite3
-          CI=false
-          EOF
-
-      - name: Run Pull & Deploy Script
-        run: |
-          chmod +x ./pull-scripts/deploy.sh
-          ./pull-scripts/deploy.sh "${GITHUB_SHA::8}"
-
-      - name: Discord Notification CD (on success)
-        run: |
-          curl -X POST -H "Content-Type: application/json" \
-          -d "{\"content\": \"✅ CI/CD PASSED and deployed!\nRepository: ${{ github.repository }}\nWorkflow: ${{ github.workflow }}\nRun: ${{ github.run_number }}\"}" \
           ${{ secrets.DISCORD_WEBHOOK_URL }}
